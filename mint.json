@@ -58,18 +58,18 @@
         "HomePage"
       ]
     },
+    
     {
-      "group": "Sections",
+      "group": "Redux-store",
       "pages": [
-        "sections/markdown",
-        "sections/code",
-        "sections/images",
-        "sections/settings",
-        "sections/navigation",
-        "sections/reusable-snippets"
+        "store/reduxstore",
+        "store/newuserslice",
+        "store/modaltoshow",
+        "store/mobverslice",
+        "store/coursesSaver",
+        "store/activetabslicer"
       ]
     },
-    
     {
       "group": "Services",
       "pages":[
