@@ -70,7 +70,7 @@
       ]
     },
     {
-      "group": "Redux Store and It's Slices",
+      "group": "Redux-store",
       "pages": [
         "store/store",
         "store/newuserslice",
