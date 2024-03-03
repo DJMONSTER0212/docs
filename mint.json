@@ -72,17 +72,7 @@
         "sections/ninthsection"
       ]
     },
-    {
-      "group": "Redux-store",
-      "pages": [
-        "store/reduxstore",
-        "store/newuserslice",
-        "store/modaltoshow",
-        "store/mobverslice",
-        "store/coursesSaver",
-        "store/activetabslicer"
-      ]
-    },
+    
     {
       "group": "Services",
       "pages":[
