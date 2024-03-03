@@ -1,0 +1,25 @@
+---
+title: 'modal to show'
+description: ' This code snippet is creating a Redux slice using the `createSlice` function from the
+`@reduxjs/toolkit` package.'
+icon: 'redux'
+---
+
+```
+import { createSlice } from "@reduxjs/toolkit";
+export const modalToShow = createSlice({
+  name: "new user",
+  initialState: {
+    componentName: "OtpVerification",
+  },
+  reducers: {
+    // Note this change
+    setComponentToShow(state, action) {
+      state.componentName = action.payload;
+    },
+  },
+});
+export const { setComponentToShow } = modalToShow.actions;
+export default modalToShow.reducer;
+
+```

@@ -1,0 +1,28 @@
+---
+title: 'Active Tab Slicer'
+description: ' This code snippet is creating a Redux slice using the `createSlice` function from the
+`@reduxjs/toolkit` package.'
+icon: 'redux'
+---
+
+```
+import { createSlice } from "@reduxjs/toolkit";
+
+export const activeTabSlice = createSlice({
+  name: "activeTab",
+  initialState: {
+    index: 1,
+  },
+  reducers: {
+    setActiveTabb(state, action) {
+      console.info("iwascalled");
+      state.index = action.payload;
+    },
+  },
+});
+
+export const { setActiveTabb } = activeTabSlice.actions;
+
+export default activeTabSlice.reducer;
+
+```

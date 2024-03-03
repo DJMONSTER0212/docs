@@ -1,0 +1,73 @@
+---
+title: 'Course saver'
+description: ' This code snippet is creating a Redux slice using the `createSlice` function from the
+`@reduxjs/toolkit` package.'
+icon: 'redux'
+---
+```
+import { createSlice } from "@reduxjs/toolkit";
+export const courseSaverSlice = createSlice({
+  name: "headerDetails",
+  initialState: {
+    recordedCourses: [],
+    selectedRecordedCourses: -1,
+    savePackage: [],
+    filteredPackages: [],
+    examName: "",
+    courseId: "658298760b90d3c52fe5611b",
+    booksPackage: {},
+    selectedPackage: {},
+    janOffPopupShow:false,
+    janOffPackage:{}
+  },
+  reducers: {
+    setRecordedCourses(state, action) {
+      console.info("courses reduce called", action.payload);
+      state.recordedCourses = action.payload;
+    },
+    selectedRecordedCoursesHandler(state, action) {
+      console.info("elsected uid recorded courses", action.payload);
+      state.selectedRecordedCourses = action.payload;
+    },
+    setFilteredPackages(state, action) {
+      state.filteredPackages = action.payload;
+      console.info("filteredPackagesRedux", state.filteredPackages);
+    },
+    setSavePackage(state, action) {
+      console.info("stored package saver", action.payload);
+      state.savePackage = action.payload;
+    },
+    setExamName(state, action) {
+      state.examName = action.payload;
+    },
+    setCourseId(state, action) {
+      state.courseId = action.payload;
+    },
+    setBooksPackage(state, action) {
+      state.booksPackage = action.payload;
+    },
+    setJanOffPopupShow(state, action) {
+      console.log(action.payload,'payload')
+      state.janOffPopupShow = action.payload;
+    },
+    setJanOffPackage(state, action) {
+      state.janOffPackage = action.payload;
+    },
+  },
+});
+export const {
+  setRecordedCourses,
+  setSavePackage,
+  selectedRecordedCoursesHandler,
+  setExamName,
+  setCourseId,
+  setFilteredPackages,
+  setBooksPackage,
+  setSelectedPackage,
+  setJanOffPopupShow,
+  setJanOffPackage
+} = courseSaverSlice.actions;
+export default courseSaverSlice.reducer;
+
+
+```

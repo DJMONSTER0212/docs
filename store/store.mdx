@@ -1,0 +1,45 @@
+---
+title: 'Redux Store'
+description: 'This code snippet is setting up a Redux store using Redux Toolkit. Here's a breakdown of what each part is doing'
+icon: 'redux'
+---
+
+```
+import { configureStore } from "@reduxjs/toolkit";
+import mobVeriSlice from "./mobVeriSlice";
+import newUserSlice from "./newUserSlice";
+import modalToShow from "./modalToShow";
+import headerSlice from "./Header/headerSlice";
+import courseSaverSlice from "./coursesSaver";
+import activeTabReducer from "./activeTabSlice";
+import examGradeSelection from "./HomePage/examGradeSelection";
+import bookSessionNewUser from "./BookSession/BookSessionNewUser";
+import bookSessionPopup from "./BookSession/BookSessionPopup";
+import bookSessionData from "./BookSession/BookSessionData";
+import packageSubscriptionPopup from "./PackageSubscription/PackageSubscriptionPopup";
+import packageSubscriptionData from "./PackageSubscription/PackageSubscriptionData";
+import gifSelection from "./HomePage/gifSelection";
+export const store = configureStore({
+  reducer: {
+    mobileVerification: mobVeriSlice,
+    newUser: newUserSlice,
+    headerInfo: headerSlice,
+    componentToShow: modalToShow,
+    examGradeSelection: examGradeSelection,
+    bookSessionNewUser: bookSessionNewUser,
+    bookSessionPopup: bookSessionPopup,
+    bookSessionData: bookSessionData,
+    packageSubscriptionPopup: packageSubscriptionPopup,
+    packageSubscriptionData: packageSubscriptionData,
+    gifSelection: gifSelection,
+    courseSelectedInfo: courseSaverSlice,
+    activeTab: activeTabReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
+
+
+```
