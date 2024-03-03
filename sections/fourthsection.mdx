@@ -1,0 +1,681 @@
+---
+title: "Section 4"
+description: " The `Section4` component in the JavaScript React code fetches and displays trending courses carousel
+ data with live classes and handles mouse events for scrolling."
+---
+
+```
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useLottie } from "lottie-react";
+import { Carousel, CarouselItem } from "react-bootstrap";
+import animationData from "../fireanimation.json";
+// import homepageData from "@/components/homePage/homepage.json";
+import styles from "../css/styles.module.css";
+import styles2 from "./styles.module.css";
+import { CourseCard1 } from "./CouseCard/CourseCard1";
+import {
+  setRecordedCourses,
+  setFilteredPackages,
+} from "@/store/coursesSaver.js";
+import { getSubscriptions, getCourses } from "@/services/subscriptionService";
+import Button from "@mui/material/Button";
+import { selectedRecordedCoursesHandler } from "@/store/coursesSaver";
+// import { CourseCard1 } from "@/components/examPage/Courses/CourseCard";
+import { s3BucketLink } from "@/utils/definitions";
+// import { CourseCard1 } from "@/components/examPage/Courses/CourseCard";
+import { useDispatch, useSelector } from "react-redux";
+import Loader from "@/components/common/Loader";
+import { usePathname } from "next/navigation";
+import { setSelectedPackage } from "@/store/PackageSubscription/PackageSubscriptionData";
+
+function Trial({ liveclasses, examFor, classFor, tw }) {
+  const [isAutoScroll, setIsAutoScroll] = useState(true);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  console.log(liveclasses, "liveclasses");
+  // Filter and limit the number of courses for the carousel
+  // useEffect(() => {
+  //   // Assuming liveclasses is the data fetched from an API
+  //   // Filter and limit the number of courses for the carousel
+  //   const filtered = liveclasses
+  //     ?.filter((p) => p.actualYears === 2)
+  //     ?.slice(0, 5); // Ensuring the array doesn't exceed 5 items
+  //   setFilteredCourses(filtered);
+  //   console.info("liveclases", liveclasses);
+  //   console.info("filtered courses", filteredCourses);
+  // }, [liveclasses]); // Dependency array includes liveclasses
+
+  const [scrollPos, setScrollPos] = useState(0);
+
+  function handleMouseEnter() {
+    setIsAutoScroll(false);
+  }
+
+  function handleMouseLeave() {
+    setIsAutoScroll(true);
+  }
+  const generateCourseUrl = (packageExams, packageGrades) => {
+    let examName = packageExams?.[0]?.examName.toLowerCase();
+
+    const gradeObj = packageGrades?.find((grade) => grade?.gradeId > 10);
+    // const baseUrl = "https://www.ilwebsite2.devinfinitylearn.in";
+
+    let coursePathSegment = "";
+
+    if (!gradeObj) {
+      // If grade is not greater than 10, default to foundation course
+      const foundationGrade = packageGrades?.[0]?.grade?.replace("Grade ", "");
+      coursePathSegment = `${examName}-foundation-course-for-class-${foundationGrade}`;
+    } else {
+      // If grade is greater than 10, use the grade number in the URL
+      const grade = gradeObj.grade.replace("Grade ", "");
+      coursePathSegment = `${examName}-class-${grade}-online-course`;
+    }
+
+    return `${coursePathSegment}/live-classes`;
+  };
+
+  function handleSlide() {
+    const maxScroll = filteredCourses.length - 1;
+    if (scrollPos >= maxScroll) {
+      setScrollPos(0);
+    } else {
+      setScrollPos((prev) => prev + 1);
+    }
+  }
+
+  return (
+    <div className={` ${styles.courses2} items-center`}>
+      <Carousel
+        controls={false}
+        className=" items-center  flex w-[100%] max-w-[380px] top-4"
+        interval={isAutoScroll ? 2000 : null}
+        onSlide={handleSlide}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {liveclasses?.map((course, index) => (
+          <CarouselItem className=" px-2 py-3" key={index}>
+            {" "}
+            <CourseCard1
+              width={tw}
+              key={index}
+              number={index}
+              title={course?.displayName}
+              desc={course?.packageSubscriptions[0]?.components}
+              classes={"CLASS"}
+              tag1={course?.tags[0]}
+              tag2={course?.tags[1]}
+              endDate={course?.endSellingDate}
+              groupValue={course?.groupValue}
+              mrp={course?.packageSubscriptions[0]?.packagePaymentPlan?.mrp}
+              strikeOffPrice={
+                course?.packageSubscriptions[0]?.packagePaymentPlan
+                  ?.strikeOffPrice
+              }
+              img={
+                course.groupValue === "Live Classes + Books"
+                  ? `/images/examBook.png`
+                  : course.groupValue === "Live Classes"
+                  ? `/images/examLive.png`
+                  : `${s3BucketLink}/ExamPage/courses/images/live-course-1.webp` // default or fallback image
+              }
+              points={course?.productComponentList}
+              uid={course?.packageId}
+              examFor={examFor}
+              classFor={classFor}
+              courseObj={course}
+              views="32.9k"
+            />
+          </CarouselItem>
+        ))}
+      </Carousel>
+      <div className="flex justify-center mt-[40px]">
+        {liveclasses?.map((_, index) => (
+          <span
+            key={index}
+            onClick={() => setScrollPos(index)}
+            className={`mx-1 cursor-pointer ${
+              index === scrollPos
+                ? "bg-[#007BFF] elongated-dash"
+                : "bg-[#99CAFF] regular-dash"
+            }`}
+            style={{ borderRadius: 2 }}
+          ></span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// const courses = homepageData["New & Trending Courses Carousel"].courses;
+
+export default function Section4({ classFor, examFor, homepageDat }) {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  const pathname = usePathname();
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const [activeDash, setActiveDash] = useState(0);
+  const carousel = useRef(null);
+  const carouselEle = useRef(null);
+  const [tw, setTw] = useState(null);
+  const [sh, ssh] = useState(0);
+  const dispatch = useDispatch();
+  const [activeIndex, setActiveIndex] = useState(sh);
+  const recordedCourses11 = useSelector(
+    (state) => state.courseSelectedInfo.recordedCourses
+  );
+  // console.log(activeIndex, "initial");
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const [packages, setPackages] = useState([]);
+  const [liveclasses, setLiveclasses] = useState([]);
+  const [allPackages, setAllPackages] = useState([]);
+  const [jsonData, setJsonData] = useState({});
+  const handleMouseEnter = () => {
+    setCarouselPaused(true);
+  };
+
+  // Event handler for mouse leave
+  const handleMouseLeave = () => {
+    setCarouselPaused(false);
+  };
+  const getLiveclasses = (exam, grade, producttype) => {
+    let params = {
+      exams: "NEET,JEEMAIN,JEEADVANCED",
+      grade: `Grade 9, Grade 10, Grade 11, Grade 12, Grade 13`,
+      producttype: producttype,
+    };
+    getSubscriptions(params).then(
+      (resp) => {
+        resp.data = resp?.data?.filter((p) => p.packageType.packageTypeId != 7);
+        resp?.data?.forEach((val) => {
+          if (val?.packageId !== null && val?.masterPackage === null) {
+            val.actualYears = Math.ceil(
+              (new Date(val?.packageValidityDate) - new Date()) /
+                (1000 * 60 * 60 * 24 * 365)
+            );
+            val.packageSubscriptions = val?.packageSubscriptions?.filter(
+              (val) => val?.packagePaymentPlan != null
+            );
+            val.maxValue = Math?.max(
+              ...val?.packageSubscriptions?.map(
+                (value) => value?.packagePaymentPlan?.mrp
+              )
+            );
+            val.minValue = Math?.min(
+              ...val?.packageSubscriptions?.map(
+                (value) => value?.packagePaymentPlan?.mrp
+              )
+            );
+            val.productComponentList = val?.packageSubscriptions?.flatMap(
+              (p) => [...p?.components]
+            );
+            val.productComponentList = [
+              ...new Map(
+                val?.productComponentList?.map((m) => [m?.displayName, m])
+              ).values(),
+            ];
+            val?.packageSubscriptions?.forEach((element) => {
+              //? setting amountPreDiscount
+              if (element.packagePaymentPlan?.mrp === val?.minValue) {
+                val.strikeOffPrice = element.packagePaymentPlan?.strikeOffPrice;
+                val.displayDiscountPercentage =
+                  element?.packagePaymentPlan?.websiteDiscount;
+              }
+            });
+            val.productComponentList.sort((a, b) => {
+              return a.priority - b.priority;
+            });
+            val.Popular = val?.packageSubscriptions?.[0]?.components?.some(
+              (p) =>
+                p.componentProduct.componentProductType.trim() === "Hardware"
+            );
+            val.selectedExam = val?.packageExams?.[0]?.examName;
+            val.selectedGrade = val?.packageGrades?.[0]?.gradeId;
+          } else if (val?.packageId === null && val?.masterPackage !== null) {
+            console.log(val?.masterPackage?.packages);
+            val.actualYears = Math.ceil(
+              (new Date(
+                val?.masterPackage?.packages?.[0]?.packageValidityDate
+              ) -
+                new Date()) /
+                (1000 * 60 * 60 * 24 * 365)
+            );
+            val?.masterPackage?.packages?.forEach((pack) => {
+              pack.packageSubscriptions = pack?.packageSubscriptions?.filter(
+                (val) => val?.packagePaymentPlan != null
+              );
+              pack.packageSubscriptions = pack?.packageSubscriptions?.sort(
+                (a, b) =>
+                  a?.packagePaymentPlan?.mrp - b?.packagePaymentPlan?.mrp
+              );
+              pack.maxValue = Math?.max(
+                ...pack?.packageSubscriptions?.map(
+                  (value) => value?.packagePaymentPlan?.mrp
+                )
+              );
+              pack.minValue = Math?.min(
+                ...pack?.packageSubscriptions?.map(
+                  (value) => value?.packagePaymentPlan?.mrp
+                )
+              );
+              pack.productComponentList = pack?.packageSubscriptions?.flatMap(
+                (p) => [...p?.components]
+              );
+              pack.productComponentList = [
+                ...new Map(
+                  pack?.productComponentList?.map((m) => [m?.displayName, m])
+                ).values(),
+              ];
+              pack?.packageSubscriptions?.forEach((element) => {
+                //? setting amountPreDiscount
+                if (element.packagePaymentPlan?.mrp === pack?.minvalue) {
+                  pack.strikeOffPrice =
+                    element.packagePaymentPlan?.strikeOffPrice;
+                  pack.displayDiscountPercentage =
+                    element?.packagePaymentPlan?.websiteDiscount;
+                }
+              });
+              pack.productComponentList.sort((a, b) => {
+                return a.priority - b.priority;
+              });
+              pack.masterPackageId = val?.masterPackage?.id;
+              pack.isMasterPackage =
+                val?.packageId === null && val?.masterPackage !== null
+                  ? true
+                  : false;
+              pack.selectedExam = pack?.packageExams?.[0]?.examName;
+              pack.selectedGrade = pack?.packageGrades?.[0]?.gradeId;
+            });
+            val.masterPackage.minValue = Math.min(
+              ...val?.masterPackage?.packages?.map((pkgSubscription) =>
+                pkgSubscription?.packageSubscriptions?.map(
+                  (value) => value?.packagePaymentPlan?.mrp
+                )
+              )
+            );
+          }
+          val.isMasterPackage =
+            val?.packageId === null && val?.masterPackage !== null
+              ? true
+              : false;
+          val.is4YearPack = val?.masterPackage?.tags?.some((y) =>
+            y?.includes("4")
+          );
+        });
+        let filterPackages = resp?.data?.sort(function (a, b) {
+          return b.minValue - a.minValue;
+        });
+        // filterPackages = resp?.data?.filter(p=> p?.masterPackage !== null && p?.packageId === null);
+        filterPackages = [].concat(
+          ...filterPackages.map((pack) => pack?.masterPackage?.packages || pack)
+        );
+        let liveClassPackages = filterPackages?.filter(
+          (pack) =>
+            pack?.groupValue == "Live Classes + Books" ||
+            pack?.groupValue == "Live Classes"
+        );
+        // let liveClassPackages = filterPackages?.filter((pack) =>
+        //   pack?.productComponentList?.some(
+        //     (p) =>
+        //       p?.componentProduct?.componentProductType
+        //         ?.trim()
+        //         ?.toLowerCase() === "liveclasses"
+        //   )
+        // );
+        console.log(filterPackages, liveClassPackages, "filtered Packages");
+        setAllPackages(liveClassPackages);
+        dispatch(setFilteredPackages(liveClassPackages));
+        setLiveclasses(liveClassPackages);
+        localStorage.setItem('recordedCourses',JSON.stringify(liveClassPackages));
+        console.log('local storage',liveClassPackages);
+        dispatch(setRecordedCourses(filterPackages));
+        // if (filterPackages.length > 4) {
+        //   console.info("recorded Section4", recordedCourses11);
+        //   console.info("recorded Section4 filter", filterPackages);
+        // }
+
+        // Update allPackages with the new data
+
+        // console.log(recordedCourses11, "trial");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
+  // Use another useEffect to handle actions after jsonData is set
+  useEffect(() => {
+    getLiveclasses("NEET,JEEMAIN,JEEADVANCED", 9, "liveclasses");
+
+    if (jsonData) {
+      console.log(jsonData, "json data");
+
+      // Define the combinations of parameters you want to use
+      const combos = [
+        { exam: "NEET", grade: "9", producttype: "liveclasses" },
+        { exam: "JEEMAIN", grade: "9", producttype: "liveclasses" },
+        { exam: "JEEADVANCE", grade: "9", producttype: "liveclasses" },
+        // Add more combinations as needed
+      ];
+
+      // Fetch data for each combination
+      // getLiveclasses("NEET,JEEMAIN,JEEADVANCED", 9, "liveclasses");
+      // homepageData?.combos?.forEach((combo) => {
+      //   getLiveclasses(combo.exam, combo.grade, combo.producttype);
+      // });
+    }
+  }, []); // This useEffect runs whenever jsonData changes
+  // console.info(allPackages, "allPackages");
+  // console.log(packages, "hbgkvbkh");
+
+  useEffect(() => {
+    const updateWidth = () => {
+      setTw(window.innerWidth);
+      if (carouselEle.current) {
+        ssh(Math.floor(window.innerWidth / carouselEle.current.offsetWidth));
+        // Assuming you want to set this as the active index
+        setActiveIndex(sh < 3 ? sh : 3);
+
+        // console.log(
+        //   "sh jhg",
+        //   window.innerWidth / carouselEle.current.offsetWidth
+        // );
+      }
+    };
+
+    updateWidth(); // Call on mount
+
+    // Optional: Update on window resize
+    window.addEventListener("resize", updateWidth);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, []);
+
+  useEffect(() => {
+    // console.log(activeIndex, "jindex");
+    if (carouselPaused == true) {
+      return;
+    }
+    const interval = setInterval(() => {
+      if (!carouselPaused) {
+        if (activeIndex > allPackages.length - 1) {
+          setActiveIndex(sh < 3 ? sh : 3);
+          carousel.current.scrollTo({
+            left: 0,
+            behavior: "smooth",
+          });
+          setActiveDash(0);
+        } else if (activeIndex == sh) {
+          setActiveDash(activeDash + 1);
+          if (
+            carouselEle?.current.offsetWidth <
+            carousel?.current.offsetWidth / 2
+          ) {
+            setActiveIndex(activeIndex + 1);
+            const totalScrollDistance = carouselEle.current.offsetWidth + 40;
+            carousel?.current.scrollTo({
+              left: carousel?.current.scrollLeft + totalScrollDistance,
+              behavior: "smooth",
+            });
+          } else {
+            setActiveIndex(activeIndex + 2);
+            const totalScrollDistance =
+              2 * (carouselEle.current.offsetWidth + 40);
+            carousel.current.scrollTo({
+              left: carousel.current.scrollLeft + totalScrollDistance,
+              behavior: "smooth",
+            });
+          }
+        } else {
+          setActiveIndex(activeIndex + 2);
+          setActiveDash(activeDash + 1);
+          const totalScrollDistance =
+            2 * (carouselEle.current.offsetWidth + 40);
+          carousel.current.scrollTo({
+            left: carousel.current.scrollLeft + totalScrollDistance,
+            behavior: "smooth",
+          });
+        }
+      }
+    }, 1800000);
+    return () => clearInterval(interval);
+  }, [activeIndex, carouselPaused]);
+
+  const [activeCard, setActiveCard] = useState(0);
+  const [dashIndex, setDashIndex] = useState(0);
+
+  const handleCardClick = (index) => {
+    setActiveCard(index);
+    setDashIndex(0);
+  };
+
+  const handleScrollChange = (scrollPosition) => {
+    // Calculate the new dash index based on the scroll position
+    const newDashIndex = Math.floor(scrollPosition / 2);
+    setDashIndex(newDashIndex);
+  };
+  const options = {
+    animationData: animationData,
+    loop: true,
+    // style: {
+    //   width: svgWidth,
+    //   height: svgHeight,
+    // },
+  };
+  // console.log(svgWidth);
+  const generateCourseUrl = (packageExams, packageGrades) => {
+    let examName = packageExams?.[0]?.examName.toLowerCase();
+    if (examName === "jeemain" || examName === "jeeadvance") {
+      examName = "jee";
+    }
+    const gradeObj = packageGrades?.find((grade) => grade?.gradeId > 10);
+    // const baseUrl = "https://www.ilwebsite2.devinfinitylearn.in";
+
+    let coursePathSegment = "";
+
+    if (!gradeObj) {
+      // If grade is not greater than 10, default to foundation course
+      const foundationGrade = packageGrades?.[0]?.grade.replace("Grade ", "");
+      coursePathSegment = `${examName}-foundation-course-for-class-${foundationGrade}`;
+    } else {
+      // If grade is greater than 10, use the grade number in the URL
+      const grade = gradeObj.grade.replace("Grade ", "");
+      coursePathSegment = `${examName}-class-${grade}-online-course`;
+    }
+
+    return `${coursePathSegment}/live-classes`;
+  };
+
+  const { heading1, heading2 } =
+    homepageData["New & Trending Courses Carousel"];
+  const { View } = useLottie(options);
+
+  const dashWidth = [50, 50, 50, 50, 50];
+
+  return (
+    <div>
+      <div className={styles.fourthSection}>
+        <div className=" max-w-[1440px] mx-auto w-[100%]">
+          <div className={styles.fourthSectionHeading}>
+            <div className={styles.fireAnimation}>{View}</div>
+
+            <h3
+              className={` ${styles.fourthSectionHeadingContent} text-[#080e14] "`}
+            >
+              {heading1}
+              <span
+                className={` ${styles.fourthSectionHeadingContent} ml-2   text-[#007BFF] `}
+              >
+                {heading2}
+              </span>
+            </h3>
+          </div>
+          {/* <button onClick={()=>getPackages('NEET',11,'recordedcourse')}>record courses</button>
+            <button onClick={()=>getPackages('NEET',11,'liveclasses')}>live classes</button>
+            <button onClick={()=>getPackages('NEET',11,'hardware')}>hardware</button> */}
+
+          <div className={`" ${styles.coursesWrapper} bg-[#D4E9FF] `}>
+            <div className={styles.courses}>
+              {allPackages?.length == 0 ? (
+                <Loader margin={"mt-3 mb-3"} />
+              ) : (
+                <div
+                  ref={carousel}
+                  onMouseEnter={handleMouseEnter} // Attach event handler for mouse enter
+                  onMouseLeave={handleMouseLeave}
+                  className={` flex snap-x  transition-transform px-[115px] ${
+                    styles.coursesScroll
+                  } gap-[20px] h-auto  overflow-y-auto no-scrollbar  duration-1500 " ${
+                    allPackages?.length < 3 ? "justify-content-center" : ""
+                  }`}
+                  style={{
+                    transition: "transform 1.5s ease", // Set transition for transform property
+                  }}
+                  // style={{ transform: `translateX(-${scrollPos * sps}%)` }} // Adjust based on card width and margin
+                >
+                  {allPackages?.map((course, index) => (
+                    <CourseCard1
+                      key={index}
+                      number={index}
+                      title={course?.displayName}
+                      img={
+                        course.groupValue === "Live Classes + Books"
+                          ? `/images/examBook.png`
+                          : course.groupValue === "Live Classes"
+                          ? `/images/examLive.png`
+                          : `${s3BucketLink}/ExamPage/courses/images/live-course-1.webp` // default or fallback image
+                      }
+                      desc={course?.packageSubscriptions[0]?.components}
+                      tag1={course?.tags[0]}
+                      tag2={course?.tags[1]}
+                      endDate={course?.endSellingDate}
+                      groupValue={course?.groupValue}
+                      mrp={
+                        course?.packageSubscriptions[0]?.packagePaymentPlan?.mrp
+                      }
+                      strikeOffPrice={
+                        course?.packageSubscriptions[0]?.packagePaymentPlan
+                          ?.strikeOffPrice
+                      }
+                      points={course?.productComponentList}
+                      ref2={carouselEle}
+                      examFor={examFor}
+                      classFor={classFor}
+                      courseObj={course}
+                      views="32.9k"
+                      to={`${pathname}/live-classes`}
+                      uid={
+                        course?.isMasterPackage
+                          ? course?.masterPackage?.id
+                          : course?.packageId
+                      }
+                    />
+                  ))}
+                  {/* {recordedCourses11
+                    ?.filter((p, i) => p.actualYears === 2)
+                    ?.map((course, index) => (
+                      <CourseCard1
+                        key={index}
+                        number={index}
+                        title={
+                          course?.isMasterPackage
+                            ? course?.masterPackage?.displayName
+                            : course?.displayName
+                        }
+                        desc={"Full Course Coverage, Revision and Test Series"}
+                        classes={"Class 9 and 10"}
+                        img={`${s3BucketLink}/ExamPage/courses/images/live-course-1.webp`}
+                        price={
+                          course?.minValue || course?.masterPackage?.minValue
+                        }
+                        points={
+                          course?.isMasterPackage
+                            ? course?.masterPackage?.displayFeature
+                            : course.packageSubscriptions?.[0]?.components.map(
+                                (component) => component.displayName
+                              )
+                        }
+                        uid={
+                          course?.isMasterPackage
+                            ? course?.masterPackage?.id
+                            : course?.packageId
+                        }
+                        ref2={carouselEle}
+                        // to={`${pathname}/live-classes`}
+                        to={
+                          course.masterPackage
+                            ? generateCourseUrl(
+                                course?.masterPackage?.packages[0].packageExams,
+                                course?.masterPackage?.packages[0].packageGrades
+                              ) // If condition is true
+                            : generateCourseUrl(
+                                course.packageExams,
+                                course.packageGrades
+                              ) // Else use the original function
+                        }
+                        examFor={examFor}
+                        classFor={classFor}
+                        courseObj={course}
+                        views="32.9k"
+                      />
+                    ))} */}
+                </div>
+              )}
+            </div>
+            {allPackages?.length > 3 && (
+              <div className={styles.dashContainer}>
+                {Array.from(
+                  { length: Math.ceil(allPackages?.length / 2) },
+                  (_, index) => (
+                    <div
+                      key={index}
+                      className={`${styles.dash} ${
+                        index === activeDash ? styles.active : ""
+                      }`}
+                    ></div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        {allPackages.length > 0 && (
+          <Trial
+            liveclasses={allPackages}
+            classFor={classFor}
+            examFor={examFor}
+            width={tw}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+```

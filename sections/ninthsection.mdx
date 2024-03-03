@@ -1,0 +1,110 @@
+---
+title: "Section 9"
+description: " The code you provided is a React component named `NinthSection` that displays a section containing
+frequently asked questions (FAQs)."
+---
+
+```
+"use client";
+import React, { useState, useEffect } from "react"; // Added useState import here
+
+import styles from "../css/styles.module.css";
+
+import { Helmet } from "react-helmet";
+import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri"; // Ensure these are installed and imported
+
+function FaqBox(props) {
+  const [showAns, setShowAns] = useState(false);
+
+  const toggleAnswer = () => {
+    setShowAns(!showAns);
+  };
+
+  return (
+    <div fetchPriority="low" className={styles.faqbox}>
+      <div className={styles.faqcontent}>
+        <div className={`${styles.faqques} flex `}>
+          <div className={styles.faqquesnumber}>{props.data.id + 1}.</div>
+          <div className={styles.faqquestext}>{props.data.ques}</div>
+        </div>
+        {showAns && <div className={styles.faqans}>{props.data.ans}</div>}
+      </div>
+      <div className={styles.arrow} onClick={toggleAnswer}>
+        {showAns ? (
+          <RiArrowDropUpLine size={30} />
+        ) : (
+          <RiArrowDropDownLine size={30} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NinthSection({ homepageDat , classFor , examFor }) {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      let url = "";
+      const path = window.location.pathname;
+
+      if (path === '/') {
+        url = "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json";
+      }else if(path.includes("foundation-course-for-class-8")){
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/ExamPage/JSON_FILES/8thfoundation.json`;
+      } else if (path.includes("course")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/ExamPage/JSON_FILES/${classFor}th${examFor}.json`;
+      } else if (path.includes("books")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json`;
+      } else if (path.includes("course") && path.includes("live-classes")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/LiveCoursePage/JSON_File/${classFor}th${examFor}.json`;
+      }
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const faq = homepageData["Faqs and Text Section"].faqSection.faq;
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((item) => ({
+      "@type": "Question",
+      name: item.ques,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.ans,
+      },
+    })),
+  };
+
+  return (
+    <div className={styles.ninthSection}>
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+      </Helmet>
+      <div className={styles.ninthSectionContainer}>
+        <h4 className={styles.nsh1}>FAQ’s</h4>
+        {faq.map((item, index) => (
+          <FaqBox key={index} data={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default NinthSection;
+
+
+```

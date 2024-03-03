@@ -1,0 +1,252 @@
+---
+title: "Section 6"
+description: " The below code is a React component named Section6 that fetches data from an external API endpoint
+and displays the fetched data on the webpage. It uses useState and useEffect hooks to manage the
+state and perform the data fetching operation. The fetched data is then used to dynamically render
+content on the webpage, including headings, checklist items, and download links for a mobile app.
+The component also includes conditional rendering based on the fetched data to display different
+content for different screen sizes (mobile, tablet, desktop). Additionally, it uses Next.js for
+routing and Image component for optimized image loading."
+---
+
+```
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+import styles from "../css/styles.module.css";
+import { useState, useEffect } from "react";
+const Section6 = ({ homepageDat }) => {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const appAndKHubData = homepageData["App and KHub"] ?? {};
+
+  const mobileHeadingHighlighted =
+    appAndKHubData.mobileHeadingHighlighted ?? "best study material,";
+  const mobileHeading2 = appAndKHubData.mobileHeading2 ?? "now at your finger";
+  const mobileHeading3 = appAndKHubData.mobileHeading3 ?? "tips!";
+
+  const tabletHeadingHighlighted =
+    appAndKHubData.tabletHeadingHighlighted ?? "best study material";
+  const tabletHeading2 = appAndKHubData.tabletHeading2 ?? ", now at";
+  const tabletHeading3 = appAndKHubData.tabletHeading3 ?? "your finger tips!";
+
+  const desktopHeadingHighlighted1 =
+    appAndKHubData.desktopHeadingHighlighted1 ?? "best study";
+  const desktopHeadingHighlighted2 =
+    appAndKHubData.desktopHeadingHighlighted2 ?? "material,";
+  const desktopHeading3 = appAndKHubData.desktopHeading3 ?? "now at";
+  const desktopHeading4 = appAndKHubData.desktopHeading4 ?? "your finger tips!";
+  const checklistItem1 = appAndKHubData.checklistItem1 ?? "live classes";
+  const checklistItem2 = appAndKHubData.checklistItem2 ?? "progress tracking";
+  const checklistItem3 =
+    appAndKHubData.checklistItem3 ?? "diverse Question Banks";
+
+  return (
+    <div fetchPriority="low" className={` ${styles.sixthSectionBorder}`}>
+      <div className={styles.downloadContainer}>
+        <div className={` ${styles.downloadSubContainer} flex  `}>
+          <div className={styles.downloadBox}>
+            <h4 className={`${styles.downloadTitle1}  `}>
+              <div className="text-[#007BFF]">{mobileHeadingHighlighted}</div>
+              <div className="text-[#080E14]"> {mobileHeading2}</div>
+              <div className="text-[#080E14]">{mobileHeading3}</div>
+            </h4>
+            <h4 className={`${styles.downloadTitle2}   `}>
+              <div>
+                <span className="text-[#007BFF]">
+                  {tabletHeadingHighlighted}
+                </span>
+                {tabletHeading2}
+              </div>
+              <div className="text-[#080E14]">{tabletHeading3}</div>
+            </h4>
+            <h4 className={`${styles.downloadTitle3} w-[ `}>
+              <div className=" text-[#007BFF]">
+                {desktopHeadingHighlighted1}
+              </div>
+              <div className="text-[#080E14]  whitespace-nowrap">
+                <span className=" text-[#007BFF]">
+                  {desktopHeadingHighlighted2}
+                </span>
+                {desktopHeading3}
+              </div>
+              <div className="text-[#080E14]">{desktopHeading4}</div>
+            </h4>
+
+            <div className={`${styles.checklistGrid} flex `}>
+              <div className=" flex flex-col gap-[38.5px]">
+                <div className={styles.checklistItem}>
+                  <Image
+                    src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/checklist1.png"
+                    alt="check"
+                    width={40}
+                    height={40}
+                    className={styles.checkImage}
+                  />
+                  <div className={styles.downloadChecklistText}>
+                    {checklistItem1}
+                  </div>
+                </div>
+                <div className={styles.checklistItem}>
+                  <Image
+                    src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/checklist1.png"
+                    alt="check"
+                    width={40}
+                    height={40}
+                    className={styles.checkImage}
+                  />
+                  <div className={styles.downloadChecklistText}>
+                    {checklistItem2}
+                  </div>
+                </div>
+              </div>
+              <div className=" flex flex-col">
+                <div className={` ${styles.checklistItem}  `}>
+                  <Image
+                    src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/checklist1.png"
+                    alt="check"
+                    width={40}
+                    height={40}
+                    className={styles.checkImage}
+                  />
+                  <div className={styles.downloadChecklistText}>
+                    {checklistItem3}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className={` ${styles.displayCG1} `}>
+              <div className=" flex gap-2 items-center">
+                <Image
+                  src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/checklist1.png"
+                  alt="check"
+                  width={25}
+                  height={25}
+                  className={styles.responsiveImage}
+                />
+                <div className={styles.downloadChecklistText}>
+                  {checklistItem1}
+                </div>
+              </div>
+              <div className=" flex gap-2 items-center">
+                <Image
+                  src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/checklist1.png"
+                  alt="check"
+                  width={25}
+                  height={25}
+                  className={styles.responsiveImage}
+                />
+                <div className={styles.downloadChecklistText}>
+                  {checklistItem2}
+                </div>
+              </div>
+              <div className=" flex gap-2 items-center ">
+                <Image
+                  src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/checklist1.png"
+                  alt="check"
+                  width={25}
+                  height={25}
+                  className={styles.responsiveImage}
+                />
+                <div className={styles.downloadChecklistText}>
+                  {checklistItem3}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.downloadHiddenChecklist}>
+              <div className={styles.downloadHeadText}>download the app</div>
+              <div className={styles.downloadAppLinks}>
+                <Link href="https://apps.apple.com/sg/app/infinity-learn/id1642492194">
+                  <Image
+                    src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/apple.svg"
+                    alt="apple"
+                    width={250}
+                    height={100}
+                    className={styles.appIcon}
+                  />
+                </Link>
+                <Link href="https://play.google.com/store/apps/details?id=com.infinitylearn.learn">
+                  <Image
+                    src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/android.svg"
+                    alt="android"
+                    width={250}
+                    height={100}
+                    className={styles.appIcon}
+                  />
+                </Link>
+              </div>
+            </div>
+          </div>
+          <div className={` relative ${styles.displayDownloadLarge} "`}>
+            {" "}
+            <Image
+              src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/app.png"
+              alt="phone"
+              width={492}
+              height={741}
+              className={`lg:-mb-[2px] ${styles.image4}  aspect-[2/3] `}
+            />
+          </div>
+          <div className={` ${styles.displayDownloadSmall}   "`}>
+            <Image
+              src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/app.png"
+              alt="phone"
+              width={313}
+              height={470}
+              className={`" lg:-mb-[2px] ${styles.imageMob1}  aspect-[2/3] `}
+            />
+          </div>
+
+          <div className={`${styles.displayMobApp} mb-4 `}>
+            <div className={` ${styles.downloadApp} `}>download the app</div>
+            <div className="flex gap-0 flex-grow  justify-center mt-2">
+              <Link href="https://apps.apple.com/sg/app/infinity-learn/id1642492194">
+                <Image
+                  src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/apple.svg"
+                  alt="apple"
+                  width={150}
+                  height={100}
+                  className={styles.appIcon}
+                />
+              </Link>
+              <Link href="https://play.google.com/store/apps/details?id=com.infinitylearn.learn">
+                <Image
+                  src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/sixthSection/images/android.svg"
+                  alt="android"
+                  width={150}
+                  height={100}
+                  className={styles.appIcon}
+                />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Section6;
+
+```

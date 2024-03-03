@@ -1,0 +1,162 @@
+---
+title: "Section 8"
+description: " This code snippet is a React component named `EighthSection`"
+---
+
+
+```
+"use client";
+import Image from "next/image";
+
+
+// export default EigthSection;
+import React, { useEffect, useState } from "react";
+import styles from "../css/styles.module.css";
+import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import analytics from "../../../utils/analytics";
+import { months } from "@/services/app.constants";
+import { getQueryParams } from "../../../utils/getQueryParams";
+function EighthSection({ homepageDat, classFor, examFor }) {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  const [seeMore, setSeeMore] = useState(true);
+  const params = getQueryParams();
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      let url = "";
+      const path = window.location.pathname;
+
+      if (path === "/") {
+        url =
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json";
+      } else if (path.includes("foundation-course-for-class-8")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/ExamPage/JSON_FILES/8thfoundation.json`;
+      } else if (path.includes("course")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/ExamPage/JSON_FILES/${classFor}th${examFor}.json`;
+      } else if (path.includes("books")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json`;
+      } else if (path.includes("course") && path.includes("live-classes")) {
+        url = `https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/LiveCoursePage/JSON_File/${classFor}th${examFor}.json`;
+      }
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const seeMoreEvent = ()=>{
+    analytics.track("see_more_clicked", {
+      'page_url': window.location.href,
+      'button_name': 'see_more_clicked',
+      'button_section': "Footer",
+      'exp_version': 'A',
+      'month': months[new Date().getMonth()],
+      'platform': 'Web',
+      'lead_category': params?.gclid ? "Marketing" : "Organic",
+      'utm_source': params?.utm_source,
+    });
+  }
+
+
+  const { textSection, title1, title2 } = homepageData["Faqs and Text Section"];
+  useEffect(() => {
+    Object.entries(textSection)?.length > 1
+      ? setSeeMore(true)
+      : setSeeMore(false);
+  }, []);
+  console.log(Object?.entries(textSection)[0], "hey");
+  return (
+    <div fetchPriority="low" className={`poppins ${styles.eigthSection}`}>
+      <div className={styles.eigthSectionWrapper}>
+        {/* Header Titles */}
+        <h4 className={`  ${styles.eRes}`}>
+          <span className={`text-[#007bff] ${styles.eh2}`}>{title1} </span>
+          <span className={styles.eh2}>{title2}</span>
+        </h4>
+        {/* Dynamic Section Creation */}
+        {seeMore ? (
+          <>
+            <div
+              className={styles.customDiv9}
+              key={Object.keys(textSection)[0]}
+            >
+              <h4 className={styles.sectionTitle}>
+                {textSection[Object.keys(textSection)[0]].title}
+              </h4>
+              {textSection[Object.keys(textSection)[0]].content && (
+                <p className={styles.sectionContent}>
+                  {textSection[Object.keys(textSection)[0]].content}
+                </p>
+              )}
+              {textSection[Object.keys(textSection)[0]].features && (
+                <div className={` gap-[4px] ${styles.featureList}`}>
+                  {textSection[Object.keys(textSection)[0]].features.map(
+                    (feature, index) => (
+                      <p key={index} className={styles.featureItem}>
+                        {feature}
+                      </p>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+            <div
+              onClick={() => {setSeeMore(false);seeMoreEvent()}}
+              className="flex text-[#007BFF] underline flex"
+            >
+              see more
+              <div className={`flex justify-center items-center`}>
+                {<IoIosArrowDown />}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {Object.entries(textSection).map(([sectionKey, sectionValue]) => (
+              <div className={styles.customDiv9} key={sectionKey}>
+                <h4 className={styles.sectionTitle}>{sectionValue.title}</h4>
+                {sectionValue.content && (
+                  <p className={styles.sectionContent}>
+                    {sectionValue.content}
+                  </p>
+                )}
+                {sectionValue.features && (
+                  <div className={` gap-[4px] ${styles.featureList}`}>
+                    {sectionValue.features.map((feature, index) => (
+                      <p key={index} className={styles.featureItem}>
+                        {feature}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div
+              onClick={() => setSeeMore(true)}
+              className="flex gap-[2px] text-[#007BFF] underline"
+            >
+              see less
+              <div className={`flex justify-center items-center`}>
+                {<IoIosArrowUp />}
+              </div>
+            </div>
+          </>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+export default EighthSection;
+```

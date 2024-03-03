@@ -1,0 +1,293 @@
+---
+title: "Section 3"
+description: " The `Section3` function in this JavaScript React code fetches data, displays tabbed content with
+ images and options, and allows users to start learning for free with a login popup option.
+ @returns The `Section3` component is being returned. It contains JSX elements that make up a section
+ of a webpage. The component includes various sub-components like `SwitchTabs`, `SwitchTabs1`,
+ `Option`, and `DoubtBox` to display different sections and functionalities on the webpage. The
+ component fetches data, handles tab changes, displays images, and provides buttons for user
+ interaction."
+---
+```
+"use client";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import Image from "next/image";
+import { BsArrowUpRight } from "react-icons/bs";
+// import "bootstrap/dist/css/bootstrap.min.css";
+import styles from "../css/styles.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import { showOverlayMode } from "../../../store/mobVeriSlice";
+import { setComponentToShow } from "../../../store/modalToShow";
+import { setInitiatedBy } from "@/store/HomePage/gifSelection";
+import analytics from "../../../utils/analytics";
+import { months } from "@/services/app.constants";
+import { getQueryParams } from "../../../utils/getQueryParams";
+const std = ["11to12+", "9to10", "4to8", "1to3"];
+const options = [
+  "personal attention",
+  "india's top faculty",
+  "focused doubt resolution",
+  "best study resource",
+  "rigorous study plan",
+];
+// const optionsInfo = Object.values(homepageData["Gradewise basis Key Features"]);
+function Option(props) {
+  if (props.data.id == 3) {
+    return (
+      <div className={styles.option}>
+        <h2 className={styles.optionHead21}>{props.data.head1}</h2>
+        <h2 className={styles.optionHead22}>{props.data.head2}</h2>
+        <div className={styles.optionInfo}>{props.data.info}</div>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.option}>
+      <h2 className={styles.optionHead1}>{props.data.head1}</h2>
+      <h2 className={styles.optionHead2}>{props.data.head2}</h2>
+      <div className={styles.optionInfo}>{props.data.info}</div>
+    </div>
+  );
+}
+export const SwitchTabs = ({ color, data, onTabChange }) => {
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [underlineStyles, setUnderlineStyles] = useState({
+    left: "0px",
+    width: "0px",
+  });
+
+  const tabsRefs = useRef([]);
+
+  const updateUnderline = () => {
+    if (tabsRefs.current[selectedTab]) {
+      setUnderlineStyles({
+        left: `${tabsRefs.current[selectedTab].offsetLeft}px`,
+        width: `${tabsRefs.current[selectedTab].offsetWidth}px`,
+      });
+    }
+  };
+
+  useLayoutEffect(updateUnderline, [selectedTab]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      updateUnderline();
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [selectedTab]);
+
+  const activeTab = (tab, index, e) => {
+    setSelectedTab(index);
+    onTabChange && onTabChange(tab, index);
+  };
+
+  return (
+    <div
+      className={` ${color == true ? " bg-[#F1F2F6] " : " bg-white "} ${
+        styles.switchTabs1Container
+      }`}
+    >
+      {data.map((tab, index) => (
+        <h3
+          key={index}
+          ref={(el) => (tabsRefs.current[index] = el)}
+          className={`${styles.switchTab1Item} ${
+            selectedTab === index ? styles.active : ""
+          }`}
+          onClick={(e) => activeTab(tab, index, e)}
+        >
+          {tab}
+        </h3>
+      ))}
+      <div
+        className={styles.switchTab1underlineItem}
+        style={underlineStyles}
+      ></div>
+    </div>
+  );
+};
+export const SwitchTabs1 = ({ data, onTabChange }) => {
+  const [selectedTab, setSelectedTab] = useState(0);
+  const containerRef = useRef(null);
+
+  const handleTabClick = (option, index) => {
+    setSelectedTab(index);
+    onTabChange && onTabChange(option, index);
+
+    // Ensure the container is available and has been rendered
+    if (containerRef.current) {
+      const container = containerRef.current;
+      const clickedTab = container.children[index];
+
+      // Calculate the scroll position required to center the clicked tab
+      const halfContainerWidth = container.offsetWidth / 2;
+      const halfTabWidth = clickedTab.offsetWidth / 2;
+      const containerPadding = parseFloat(
+        window.getComputedStyle(container).paddingLeft
+      );
+
+      const scrollLeft =
+        clickedTab.offsetLeft +
+        halfTabWidth -
+        halfContainerWidth -
+        containerPadding;
+
+      // Update the container's scroll position
+      container.scrollLeft = scrollLeft;
+    }
+  };
+
+  return (
+    <div className={` ${styles.switchTab1ItemMWrapper}  no-scrollbar `}>
+      <h3 ref={containerRef} className={`${styles.switchTab1ItemMDiv}`}>
+        {data.map((option, index) => (
+          <span
+            key={index}
+            className={`${styles.switchTabItemM}  ${
+              index === selectedTab
+                ? " text-blue-500 border-b-[2px]  "
+                : " text-[#080E14] "
+            }`}
+            onClick={() => handleTabClick(option, index)}
+          >
+            {option}
+          </span>
+        ))}
+      </h3>
+    </div>
+  );
+};
+export function DoubtBox({ text, livecoursesdata }) {
+  const displayText =
+    text === "focused doubt resolution" ? "doubt resolution" : text;
+  return (
+    <div className={styles.changeBoxText}>
+      <div className={styles.changeTextBoxText}>{displayText}</div>
+    </div>
+  );
+}
+// export default SwitchTabs;
+
+export default function Section3({ homepageDat }) {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  const activeTabIndex = useSelector((state) => state.activeTab.index);
+  const params = getQueryParams();
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const showOverlay = useSelector(
+    (state) => state.mobileVerification.showOverlay
+  );
+
+  // console.info("activeTab", activeTabIndex);
+  const dispatch = useDispatch();
+  const [selectedOption, setSelectedOption] = useState(0);
+  const onTabChange = (tab, index) => {
+    setSelectedOption(index);
+  };
+  const [LoginPopup, setLoginPopup] = useState(null);
+  const importLoginPopup = async () => {
+    if (!LoginPopup) {
+      const importedComponent = await import(
+        "@/components/LoginPopup/index.jsx"
+      );
+      setLoginPopup(() => importedComponent.default);
+    }
+  };
+
+  const startLearning = async () => {
+    dispatch(setComponentToShow("SendOtp"));
+    dispatch(showOverlayMode(!showOverlay));
+    dispatch(setInitiatedBy("sendOtp"));
+    await importLoginPopup();
+    analytics.track("cta_clicked", {
+      'page_url': window.location.href,
+      'button_name': 'cta_clicked',
+      'button_section': "Details",
+      'exp_version': 'A',
+      'month': months[new Date().getMonth()],
+      'platform': 'Web',
+      'lead_category': params?.gclid ? "Marketing" : "Organic",
+      'utm_source': params?.utm_source,
+    });
+  };
+  const optionsInfo = Object.values(
+    homepageData[`GradewisebasisKeyFeatures${std[activeTabIndex]}`]
+  );
+  console.info("section3", homepageData);
+  const options = homepageDat[`smallTextHolder${std[activeTabIndex]}`];
+
+  return (
+    <div fetchPriority="low" className={styles.thirdSectionWrapper}>
+      <div className={`${styles.switchTabs1Wrapper}   no-scrollbar `}>
+        {/* {isMobileView1 && ( */}
+        <div className={`" ${styles.displayST1}  mx-auto overflow-x-auto  "`}>
+          <SwitchTabs1 data={options} onTabChange={onTabChange} />
+        </div>
+        {/* )} */}
+        {/* {!isMobileView && ( */}
+        <div className={` ${styles.displayST} `}>
+          <SwitchTabs data={options} onTabChange={onTabChange} />
+        </div>
+        {/* )} */}
+      </div>
+      <div className={` ${styles.thirdSection} no-scrollbar `}>
+        <div className={styles.thirdSectionContainer}>
+          <div className={styles.thirdSectionContentWrapper}>
+            <div className={styles.imageContainer1}>
+              <Image
+                src={`${optionsInfo[selectedOption].banner}`}
+                height={520} // Adjust as needed
+                width={524} // Adjust as needed
+                alt="thirdSection"
+                className={styles.imageStyle1}
+                fetchPriority="high"
+              />
+              <DoubtBox
+                homepageData={homepageData}
+                text={options[selectedOption]}
+              />
+            </div>
+            <div className={styles.thirdSectionContent}>
+              <div className=" w-[100%]">
+                <Option data={optionsInfo[selectedOption]} />
+              </div>
+              <button
+                onClick={startLearning}
+                className={` ${styles.sLFFButton} hover:space-x-4 gap-2 transition duration-1500  hover:bg-blue-600`}
+              >
+                <div>start learning for free </div>
+                <span className=" ml-[8px]">
+                  <BsArrowUpRight size={16} />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {LoginPopup && <LoginPopup />}
+    </div>
+  );
+}
+
+```

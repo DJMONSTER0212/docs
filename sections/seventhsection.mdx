@@ -1,0 +1,241 @@
+
+---
+title: "Section 7"
+description: " The below code is a React component named `SeventhSection`. It is importing various dependencies
+such as `React`, `useState`, `useEffect`, and others from React and other custom modules. The
+component is fetching data from an external JSON file and displaying certain content based on the
+fetched data.."
+---
+
+```
+"use client";
+import { useEffect, useState } from "react";
+import homepageDat from "../homePage.json";
+import { useDispatch, useSelector } from "react-redux";
+import { setPhoneNumber } from "../../../store/BookSession/BookSessionData";
+import { setIsNewUser } from "../../../store/BookSession/BookSessionNewUser";
+import { setIsExitingUser } from "../../../store/mobVeriSlice";
+import { verifyPhone, sendOtp } from "../../../services/userServics";
+import dynamic from "next/dynamic";
+import {
+  setIsPopupShow,
+  setComponentToShow,
+} from "../../../store/BookSession/BookSessionPopup";
+import "./seventhSection.css";
+import styles from "../css/styles.module.css";
+import analytics from "../../../utils/analytics";
+import { months } from "@/services/app.constants";
+import { getQueryParams } from "../../../utils/getQueryParams";
+const BookSessionPopup = dynamic(
+  () => import("@/components/bookSessionPopup"),
+  {
+    loading: () => <p>Loading...</p>, // Optional loading component or function
+    ssr: false, // Set to false if the component should only be rendered client-side
+  }
+);
+
+const SeventhSection = ({ classFor, examFor }) => {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  const params = getQueryParams();
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const [query, setQuery] = useState("");
+  const [isBooksPage, setIsBooksPage] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const isPopupShow = useSelector(
+    (state) => state.bookSessionPopup.isPopupShow
+  );
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const isBooks = window.location.href.includes(
+      `${examFor}-${classFor}-books-package`
+    ); // Adjust the condition based on your URL structure
+    setIsBooksPage(isBooks);
+    // console.log(isBooks,"books")
+  }, []);
+
+  const handleInputChange = (e) => {
+    if (
+      (/^\d*$/.test(e.target.value) && e.target.value.length <= 10) ||
+      e.target.value === ""
+    ) {
+      setQuery(e.target.value);
+    }
+  };
+
+  const handleToggleOverlay = async () => {
+    if (query.length === 10) {
+      let body = {
+        isd_code: "+91",
+        phone: query,
+        tenant_id: "1",
+        product_id: "300",
+      };
+      let body1 = {
+        isdCode: "+91",
+        phone: query,
+        // tenant_id: "0",
+        // product_id: "1",
+      };
+      try {
+        const userData = await verifyPhone(body1);
+        dispatch(setIsExitingUser(userData?.existingUser));
+        dispatch(setPhoneNumber(query));
+        if (userData?.existingUser) {
+          sentOtp();
+        } else {
+          const response = await sendOtp(body);
+          dispatch(setIsNewUser(true));
+          // setOtpSent(response);
+          dispatch(setComponentToShow("OtpVerification"));
+          dispatch(setIsPopupShow(!isPopupShow));
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error.message);
+      } finally {
+      }
+    } else {
+      console.error("Phone number should be 10 digits!");
+    }
+    analytics.track("cta_clicked", {
+      'page_url': window.location.href,
+      'button_name': 'cta_clicked',
+      'button_section': "Footer",
+      'exp_version': 'A',
+      'month': months[new Date().getMonth()],
+      'platform': 'Web',
+      'lead_category': params?.gclid ? "Marketing" : "Organic",
+      'utm_source': params?.utm_source,
+    });
+  };
+  const sentOtp = async () => {
+    let body = {
+      isd_code: "+91",
+      phone: query,
+      tenant_id: "1",
+      product_id: "300",
+    };
+    try {
+      const response = await sendOtp(body);
+      dispatch(setComponentToShow("OtpVerification"));
+      dispatch(setIsPopupShow(!isPopupShow));
+    } catch (error) {
+      console.error("Error fetching data:", error.message);
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  const preventZoom = () => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+      );
+    }
+  };
+  const { heading1, heading2, heading3, subHeading } =
+    homepageData["Lead Capture (Book a counselling)"];
+  // console.log(homepageData["Lead Capture (Book a counselling)"], "ekjhbfefguu");
+
+  const restoreZoom = () => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
+    }
+  };
+  const handleEnter = (event) => {
+    if (event.key === 'Enter') {
+      if(query?.length == 10){
+        handleToggleOverlay();
+      }
+    }
+  };
+  return (
+    <>
+      <div fetchPriority="low" className={styles.downloadoverlay}>
+        <div
+          className={` flex ${styles.downloadoverlaysub}  sm:gap-6 md:gap-0 `}
+        >
+          <div className=" w-fit   ">
+            <h4 className="font-bold dowHead downloadTitleA   whitespace-nowrap">
+              {isBooksPage ? "book a " : heading1}
+              <span className="text-[#FCDE5A] displayAcad1">
+                {isBooksPage ? "demo" : ` ${heading2}`}
+              </span>
+            </h4>
+            <h4 className="text-[#FCDE5A] font-bold  downloadTitleA   text-c1 dowHead  ">
+              <span className="text-[#FCDE5A] displayAcad">
+                {" "}
+                {isBooksPage ? "demo" : ` ${heading2}`}
+              </span>{" "}
+              {isBooksPage ? "session" : heading3}
+            </h4>
+            <div className=" downloadPara ">
+              {isBooksPage
+                ? "a short sentence about how an academic counsellor would help the student. "
+                : subHeading}
+            </div>
+          </div>
+
+          <div className={styles.downloaddemosessioninputbox}>
+            <div className={styles.downloaddemosessioninputsubbox}>
+              <div className={styles.downloaddemosessioninput}>
+                <span className="text-[#080E14] font-bold sm:mr-[6px] text-[16px]">
+                  +91{" "}
+                </span>
+                <input
+                  className={` outline-none ${styles.inputtext1} text-[16px] w-[100%] text-[#080E14] `}
+                  type="tel"
+                  placeholder="enter your mobile number"
+                  value={query}
+                  onChange={handleInputChange}
+                  onFocusCapture={preventZoom}
+                  onBlurCapture={restoreZoom}
+                  onKeyDown={handleEnter}
+                />
+              </div>
+              <button
+                onClick={handleToggleOverlay}
+                className={` ${styles.downloadbookbutton} whitespace-nowrap`}
+              >
+                book now
+              </button>
+            </div>
+            <div className={styles.downloadotpinfo}>
+              we will send an otp for verification
+            </div>
+          </div>
+        </div>
+
+        {isPopupShow && <BookSessionPopup />}
+      </div>
+    </>
+  );
+};
+
+export default SeventhSection;
+
+```

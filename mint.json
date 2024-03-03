@@ -58,7 +58,20 @@
         "HomePage"
       ]
     },
-    
+    {
+      "group": "Sections",
+      "pages": [
+        "sections/firstsection",
+        "sections/secondsection",
+        "sections/thirdsection",
+        "sections/forthsection",
+        "sections/fifthsection",
+        "sections/sixthsection",
+        "sections/seventhsection",
+        "sections/eightsection",
+        "sections/ninthsection"
+      ]
+    },
     {
       "group": "Redux-store",
       "pages": [

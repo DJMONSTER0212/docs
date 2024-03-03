@@ -1,0 +1,537 @@
+---
+title: "Section 5"
+description: " The `Section5` function in this JavaScript React code renders a component that displays testimonials
+  and a video overlay, with dynamic resizing based on screen width and interactive elements for user
+  interaction."
+---
+
+```
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { IoMdClose } from "react-icons/io";
+import { GoArrowUpRight } from "react-icons/go";
+import { showOverlayMode } from "../../../store/mobVeriSlice";
+
+import { useDispatch, useSelector } from "react-redux";
+import { setComponentToShow } from "../../../store/BookSession/BookSessionPopup";
+import { Carousel, CarouselItem } from "react-bootstrap";
+import BookSessionPopup from "@/components/bookSessionPopup/index.jsx";
+import styles from "../css/styles.module.css";
+import analytics from "../../../utils/analytics";
+import { months } from "@/services/app.constants";
+import { getQueryParams } from "../../../utils/getQueryParams";
+function VideoOverlay({ onClose }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.8)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1000, // Ensure it's above other elements
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          width: "90%", // Smaller percentage for smaller screens
+          maxWidth: "560px", // Max width for larger screens
+          height: "auto",
+          aspectRatio: "16 / 9", // Maintain aspect ratio
+          padding: "24px",
+          backgroundColor: "black",
+
+          boxSizing: "border-box", // Include padding in width and height
+        }}
+      >
+        <iframe
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          src="https://www.youtube.com/embed/YCiIdIXx-7Q?start=199"
+          frameBorder="0"
+          allowFullScreen
+        ></iframe>
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: "-10px",
+            right: "-10px",
+            padding: "5px 10px",
+            borderRadius: "50%",
+            border: "none",
+            fontSize: "20px",
+            cursor: "pointer",
+            backgroundColor: "transparent", // Optional for style
+          }}
+        >
+          <IoMdClose size={24} color="white" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NewLevelShower({ currentIndex, size }) {
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  // const reviews = homepageData?.Testimonials.reviews;
+  useEffect(() => {
+    setIsLargeScreen(window.innerWidth > 480);
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 480);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const partWidth = isLargeScreen ? 200 / +size : 95 / +size; // 200px or 95px divided by 5 respectively
+  const filledWidth = (currentIndex + 1) * partWidth;
+  console.log(size, "n");
+  return (
+    <div className=" max-lg:px-0 max-xl:">
+      <div className="flex items-center">
+        <div className="w-4 h-4 mr-4 font-semibold text-white">01</div>
+        <div
+          className={`${
+            isLargeScreen ? "w-[240px]" : "w-[110px]"
+          } h-0.5 mt-2 bg-white`}
+        ></div>
+        <div className="w-4 h-4 ml-4 font-semibold text-white">{size}</div>
+      </div>
+      <div
+        className="relative bottom-2 left-8 bg-blue-500 h-2"
+        style={{ width: `${filledWidth}px` }}
+      ></div>
+    </div>
+  );
+}
+export function ReviewsSmall({ homepageData, onVideo }) {
+  const reviews = homepageData?.Testimonials.reviews;
+  const [scrollPos, setScrollPos] = useState(0);
+  const [maxSize, setMaxSize] = useState(reviews.length);
+  function handleSlide() {
+    const maxScroll = reviews.length - 1;
+    if (scrollPos >= maxScroll) {
+      setScrollPos(0);
+    } else {
+      setScrollPos((prev) => prev + 1);
+    }
+  }
+  useEffect(() => {
+    setMaxSize(+reviews.length);
+  }, []);
+  console.log(maxSize);
+  return (
+    <div className={styles.RS}>
+      <div className={styles.nls}>
+        <NewLevelShower currentIndex={scrollPos} size={maxSize} />
+      </div>
+
+      <Carousel
+        controls={false}
+        className={styles.carous}
+        interval={2000}
+        onSlide={handleSlide}
+      >
+        {reviews?.map((review, index) => (
+          <CarouselItem key={index}>
+            <div
+              className="d-flex  justify-content-center align-items-center mx-3"
+              style={{ height: "100%" }}
+            >
+              <Card data={review} onVideo={onVideo} />
+            </div>
+          </CarouselItem>
+        ))}
+      </Carousel>
+    </div>
+  );
+}
+
+export const Card = ({ data, onVideo, onMouseEnter, onMouseLeave }) => {
+  const check = data.video;
+  const [svgWidth, setSvgWidth] = useState(365);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const updateWidth = () => {
+    setSvgWidth(window.innerWidth <= 480 ? 292 : 365);
+  };
+  useEffect(() => {
+    // Update width on mount
+    updateWidth();
+
+    // Add resize event listener
+    window.addEventListener("resize", updateWidth);
+
+    // Cleanup: remove event listener on unmount
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  if (check) {
+    return (
+      <div>
+        <div
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          className={styles.cardVideo}
+        >
+          <div className={styles.imageContainer}>
+            <Image
+              src={data.image}
+              alt="Video Background"
+              className={styles.backgroundImage}
+              width={svgWidth}
+              height={161}
+              onClick={onVideo}
+            />
+            <Image
+              src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/fifthSection/images/video.svg"
+              alt="Play Button Logo"
+              className={styles.playButton}
+              width={40}
+              height={40}
+              onClick={onVideo}
+            />
+          </div>
+          <div className={styles.cardVideoReview}>{data.review}</div>
+          <div className={styles.cardVideoIC}>
+            <Image
+              src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/fifthSection/images/invertedCommas2.svg"
+              height={41}
+              width={52}
+              alt="inverted commas "
+              className=" "
+            />
+          </div>
+
+          <div
+            className={` ${styles.cardVideoInfo}
+          max-md:justify-start  max-md:flex-col
+          "`}
+          >
+            <div className="flex z-50  flex-col flex-grow">
+              <div className={styles.cardVideoName}>{data.name}</div>
+              <div className=" flex gap-[40px] max-sm:gap-[20px] max-sm:flex-col ">
+                <div className={styles.cardVideoPlace}>{data.place}</div>
+                <div className={styles.cardVideoCourse}>{data.batch}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* {showOverlay ? (
+          <VideoOverlay onClose={() => setShowOverlay(false)} />
+        ) : null} */}
+      </div>
+    ); // or you can return some default component or <></> for nothing.
+  }
+
+  return (
+    <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={` ${styles.cardNormal} flex-shrink-0`}
+    >
+      <div className={styles.cardNormalImageInfoWrapper}>
+        <Image
+          src={data.image}
+          // className=" rounded-full"
+          height={120}
+          width={120}
+          className=" w-auto h-auto "
+          fit="contain"
+          alt="cards svg"
+        />
+        <div className="flex z-10  flex-col flex-grow">
+          <div className={styles.cardNormalName}>{data.name}</div>
+          <div className={`" ${styles.cardNormalPlace} mb-[24px]"`}>
+            {data.place}
+          </div>
+          <div className={styles.cardNormalCourse}>{data.batch}</div>
+        </div>
+      </div>
+      <Image
+        src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/fifthSection/images/invertedcommas.svg"
+        height={52}
+        width={40}
+        alt="inverted commas"
+        className=" w-[15%]"
+      />
+      <div className={styles.cardNormalReview}>{data.review}</div>
+    </div>
+  );
+};
+
+export default function Section5({ homepageDat }) {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  const [maxSize, setMaxSize] = useState(
+    homepageDat?.Testimonials.reviews.length
+  );
+  const params = getQueryParams();
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        setMaxSize(data?.Testimonials.reviews.length);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+
+  const [svgWidth, setSvgWidth] = useState(592);
+  const [showOverlay1, setShowOverlay1] = useState(false);
+  const [cN, setCN] = useState(2);
+  const [pN, setPN] = useState(4);
+  const [sN, setSN] = useState(16.5);
+  const [isHovering, setIsHovering] = useState(false);
+  const cardRef = useRef(null);
+  const [query, setQuery] = useState("");
+  const isPopupShow = useSelector(
+    (state) => state.bookSessionPopup.isPopupShow
+  );
+  const showOverlay = useSelector(
+    (state) => state.mobileVerification.showOverlay
+  );
+  const [LoginPopup, setLoginPopup] = useState(null);
+  //  const dispatch = useDispatch();
+  const importLoginPopup = async () => {
+    if (!LoginPopup) {
+      const importedComponent = await import(
+        "@/components/bookSessionPopup/index.jsx"
+      );
+      setLoginPopup(() => importedComponent.default);
+    }
+  };
+  const {
+    desktopHeading1,
+    desktopHeading2,
+    desktopHeading3Highlighted,
+    tabletHeading1,
+    tabletHeading2Highlighted,
+    mobileHeading1,
+    mobileHeading2,
+    mobileHeading3Highlighted,
+  } = homepageData.Testimonials;
+  const dispatch = useDispatch();
+
+  const startLearning = async () => {
+    dispatch(setComponentToShow("SendOtp"));
+    dispatch(showOverlayMode(!showOverlay));
+    await importLoginPopup();
+    analytics.track("cta_clicked", {
+      'page_url': window.location.href,
+      'button_name': 'cta_clicked',
+      'button_section': "Toppers",
+      'exp_version': 'A',
+      'month': months[new Date().getMonth()],
+      'platform': 'Web',
+      'lead_category': params?.gclid ? "Marketing" : "Organic",
+      'utm_source': params?.utm_source,
+    });
+  };
+  const [scrollPos, setScrollPos] = useState(0);
+
+  useEffect(() => {
+    const maxScroll = reviews.length - Math.ceil(cN / 2);
+    const interval = setInterval(() => {
+      if (!isHovering) {
+        if (scrollPos >= maxScroll) {
+          setScrollPos(0);
+        } else {
+          setScrollPos((prev) => prev + pN);
+        }
+      }
+    }, 2300);
+
+    return () => clearInterval(interval);
+  }, [scrollPos, isHovering]);
+  const updateWidth = () => {
+    setSvgWidth(window.innerWidth <= 1024 ? 400 : 592);
+    // console.log("jhv");
+    const width = window.innerWidth;
+
+    if (width >= 481 && width <= 576) {
+      setCN(1);
+      setSN(60);
+      setPN(1);
+    } else if (width >= 577 && width <= 767) {
+      setCN(2);
+      setSN(50);
+      setPN(1);
+      // ... (similar logic as above)
+    } else if (width >= 768 && width <= 991) {
+      // console.log("kj");
+      setCN(2);
+      setSN(40);
+      setPN(1);
+    } else if (width >= 992 && width <= 1199) {
+      // ... (similar logic as above)
+      // console.log("tfj");
+      setCN(3);
+      setSN(40);
+      setPN(1);
+      // console.log("kjrenfre");
+    } else if (width >= 1200 && width <= 1400) {
+      // ... (similar logic as above)
+    }
+  };
+  const reviews = homepageData.Testimonials.reviews;
+  // console.log(sN);
+  useEffect(() => {
+    // Update width on mount
+    updateWidth();
+
+    // Add resize event listener
+    window.addEventListener("resize", updateWidth);
+
+    // Cleanup: remove event listener on unmount
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+  const videoClickEvent = ()=>{
+    analytics.track("video_clicked", {
+      'page_url': window.location.href,
+      'button_name': 'video_clicked',
+      'button_section': "Toppers",
+      'exp_version': 'A',
+      'month': months[new Date().getMonth()],
+      'platform': 'Web',
+      'lead_category': params?.gclid ? "Marketing" : "Organic",
+      'utm_source': params?.utm_source,
+    });
+  }
+  return (
+    <div fetchPriority="low" className={styles.fifthSection}>
+      <div className={styles.fifthSectionCont}>
+        <div className={` ${styles.fifthSectionContainer}`}>
+          <div className={styles.fifthSectionHeading1}>
+            <h4 className={` text-white ${styles.fifthSectionHeadingContent} `}>
+              {mobileHeading1}
+            </h4>
+            <h4 className={` text-white ${styles.fifthSectionHeadingContent} `}>
+              {mobileHeading2}{" "}
+              <span className="text-[#FCDE5A]">
+                {" "}
+                {mobileHeading3Highlighted}{" "}
+              </span>
+            </h4>
+          </div>
+          <div className={styles.fifthSectionHeading2}>
+            <h4 className={` text-white ${styles.fifthSectionHeadingContent} `}>
+              {tabletHeading1}
+            </h4>
+            <h4
+              className={`text-[#FCDE5A] ${styles.fifthSectionHeadingContent} `}
+            >
+              {tabletHeading2Highlighted}{" "}
+            </h4>
+          </div>
+          <div className={styles.fifthSectionHeading3}>
+            <h4 className={` text-white ${styles.fifthSectionHeadingContent} `}>
+              {desktopHeading1}
+            </h4>
+            <h4 className={` text-white ${styles.fifthSectionHeadingContent} `}>
+              {desktopHeading2}
+            </h4>
+            <h4
+              className={` text-[#FCDE5A] ${styles.fifthSectionHeadingContent} `}
+            >
+              {desktopHeading3Highlighted}
+            </h4>
+          </div>
+          <div className={` ${styles.imageTomp} `}>
+            <Image
+              src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/fifthSection/images/fifthSection.png"
+              className={` ${styles.imageTomp} hover:cursor-pointer mt-20  aspect-[3/2]`}
+              height={400}
+              width={600}
+              alt="topper.svg"
+              onClick={() => {setShowOverlay1(true);videoClickEvent()}}
+            />
+          </div>
+        </div>
+      </div>
+      {/* {useEffect(() => { */}
+      <div className={`${styles.reviews} overflow-visible`}>
+        {/* <Container> */}
+        <div className={`${styles.nlss}  ${styles.noHorizontalMargin} `}>
+          <NewLevelShower currentIndex={scrollPos} size={maxSize} />
+        </div>
+        <div className={`${styles.rev}  `}>
+          <div
+            className={`${styles.carouss} overflow-visible ml-auto  max-w-[1325px] no-scrollbar "`}
+          >
+            <div
+              className={` ${styles.caroussItem}    `}
+              style={{ transform: `translateX(-${scrollPos * sN}%)` }}
+            >
+              {reviews.map((review, index) => (
+                <div key={index} ref={cardRef} className=" flex-shrink-0">
+                  <Card
+                    // ref={index === 0 ? cardRef : null}
+                    key={index}
+                    data={review}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className={` ${styles.buttonSLOFWrapper}`}>
+          <button
+            onClick={startLearning}
+            className={`  ${styles.buttonSLOF}
+
+                ${styles.responsiveButton} `} // Added responsive-button class
+          >
+            <div className=" transition-all">start learning for free</div>
+            <GoArrowUpRight size={24} />
+          </button>
+        </div>
+        {/* </Container> */}
+      </div>
+      <div className={` ${styles.hideRS}`}>
+        <ReviewsSmall
+          onVideo={() => {
+            setShowOverlay1(true);
+          }}
+          homepageData={homepageData}
+        />
+        <div className={` ${styles.buttonSLOFWrapper}`}>
+          <button
+            onClick={startLearning}
+            className={`  ${styles.buttonSLOF} ${styles.responsiveButton} `} // Added responsive-button class
+          >
+            <div className=" transition-all">start learning for free</div>
+            <GoArrowUpRight size={24} />
+          </button>
+        </div>
+      </div>
+      {showOverlay1 ? (
+        <VideoOverlay onClose={() => setShowOverlay1(false)} />
+      ) : null}
+      {LoginPopup && <BookSessionPopup />}
+    </div>
+  );
+}
+
+```

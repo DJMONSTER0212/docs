@@ -1,0 +1,239 @@
+---
+title: "Section 1"
+description: " The Section1 component in this JavaScript React code fetches data from a JSON file and displays
+   various sections of content on a webpage, including hero text, images, input sections, and
+   statistics.
+   @returns The `Section1` component is being returned. It contains various elements such as headings,
+   images, input sections, and statistics displayed in different styles based on the viewport size. The
+   component fetches data from an external JSON file and renders dynamic content based on that data. It
+   also includes animations like word sliding effect and image loading optimizations for better
+   performance."
+---
+
+
+```
+"use client";
+import Image from "next/image";
+import styles from "../css/styles.module.css";
+// import { useDispatch, useSelector } from "react-redux";
+import {
+  WordSlider,
+  InputSection1,
+} from "@/components/homePage/section1/clientRender";
+import React, { useState, useEffect } from "react";
+
+import Col from "react-bootstrap/Col";
+
+
+const duration = 2000; // Duration in milliseconds for each word
+
+function StatsTablet({ homepageData }) {
+  const {
+    statsText1,
+    statsText1Count,
+    statsText2,
+    statsText2Count,
+    statsText3,
+    statsText3Count,
+  } = homepageData["WIL - Navigation Menu and Hero Section"].stats;
+
+  return (
+    <div className={styles.statsTabletWrapper}>
+      {/* Replace hardcoded text with data from JSON */}
+      <div className={styles.stat1Div}>
+        <div className={styles.stat1Text1}>{statsText1}</div>
+        <div className={styles.stat1Text2}>{statsText1Count}</div>
+      </div>
+      <div className={styles.stat1Border} />
+      <div className={styles.stat1Div}>
+        <div className={styles.stat1Text1}>{statsText2}</div>
+        <div className={styles.stat1Text2}>{statsText2Count}</div>
+      </div>
+      <div className={styles.stat1Border} />
+      <div className={styles.stat1Div}>
+        <div className={`${styles.stat1Text1}  flex-grow`}>{statsText3}</div>
+        <div className={styles.stat1Text2}>{statsText3Count}</div>
+      </div>
+    </div>
+  );
+}
+
+function Stats({ homepageData }) {
+  const {
+    statsText1,
+    statsText1Count,
+    statsText2,
+    statsText2Count,
+    statsText3,
+    statsText3Count,
+  } = homepageData["WIL - Navigation Menu and Hero Section"].stats;
+
+  return (
+    <div className={styles.statsMobile}>
+      {/* Replace hardcoded text with data from JSON */}
+      <div className="">
+        <div className={styles.statsMobileText1}>{statsText1}</div>
+        <div className={styles.statsMobileText2}>{statsText1Count}</div>
+      </div>{" "}
+      <div className={styles.statsMobileBorder} />
+      <div className={styles.statsMobileDiv}>
+        <div className={styles.statsMobileText1}>{statsText2}</div>
+        <div className={styles.statsMobileText2}>{statsText2Count}</div>
+      </div>
+      <div className={styles.statsMobileBorder} />
+      <div className={styles.statsMobileDiv}>
+        <div className={` ${styles.statsMobileText1}  flex flex-grow`}>
+          <div className=" mr-1">{statsText3}</div>
+        </div>
+        <div className={styles.statsMobileText2}>{statsText3Count}</div>
+      </div>
+    </div>
+  );
+}
+
+export default function Section1({ homepageDat }) {
+  // window.dataLayer = window.dataLayer || [];
+
+  // const showOverlay = useSelector(
+  //   (state) => state.mobileVerification.showOverlay
+  // );
+
+  // const [LoginPopup, setLoginPopup] = useState(null);
+
+  // const dispatch = useDispatch();
+
+  // const handleInputChange = (e) => {
+  //   if (
+  //     (/^\d*$/.test(e.target.value) && e.target.value.length <= 10) ||
+  //     e.target.value === ""
+  //   ) {
+  //     setQuery(e.target.value);
+  //   }
+  // };
+  // const importLoginPopup = async () => {
+  //   if (!LoginPopup) {
+  //     const importedComponent = await import(
+  //       "@/components/LoginPopup/index.jsx"
+  //     );
+  //     setLoginPopup(() => importedComponent.default);
+  //   }
+  // };
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, []); // Dependency array includes homepageData
+  console.log(homepageData,homepageDat,"lata")
+
+  const heroText =
+    homepageData["WIL - Navigation Menu and Hero Section"]?.heroText ?? {};
+
+  // Extract individual texts with default values
+  const heroText1 = heroText.heroText1 ?? "power up your";
+  const slidingHeroText1 = heroText.slidingHeroText1 ?? "learning";
+  const slidingHeroText2 = heroText.slidingHeroText2 ?? "academic";
+  const heroText2 = heroText.heroText2 ?? "journey with";
+  const heroText3 = heroText.heroText3 ?? "infinity learn";
+
+
+  const blurDataURL =
+    "data:image/webp;base64,UklGRqYBAABXRUJQVlA4WAoAAAAQAAAAEwAADgAAQUxQSJYAAAABgGNt2zHnGXee6WwuYFZgdrOCoDO6VLZr2zZqJ3VWkN5+4sEKImICkK0cuSx1ZGHoHTKhuuyHPvhdD0iOyGP5btGPFZJcB/xvJMNbgz+mPj5e32aADEm2NLwFAMg8/nRAB9T9uCpnHdAyMLRw8TVRf/3jaZWbkPFX3vLve7Oc2b5+3NjVWY36NEhkNZFKpTtYsMFcBgFWUDgg6gAAABAFAJ0BKhQADwA+bSyRRaQioZgEAEAGxLYATpepPSaYBqLREfCR2Yd/0O7hAXKmg4AA/vgu7f86OtjS/bQs8SvcohSvT8+00FVbbjr4+XjVP2ejQOPCpzc+Dg897BA8cEyGNyXhpba+38uJpT4YrgQHmoqjnt5BrrsZ5DEBfJQQSglJaefzqNtcqf0bkqn20d/zUVUYQ30RDKbl1rMnjfq/4F7rCpJmlaxhk0NoV/A5V9Nv6pYtgjLyt38f9f/z/w+5xXxHr/8/+f+f/svkr3Dv/Nm1ymmr4vxhleX/Vxadkw1OG0/o5MQAAA==";
+
+
+  return (
+    <div
+      style={{ backgroundColor: "#007bff" }}
+      fetchPriority="highest"
+      className={`poppins ${styles.firstSectionn}`}
+    >
+      <div className={styles.firstSectionContainer}>
+        <Col>
+          <div className={styles.firstSectionHeadTextWrapper}>
+            <h1 className={`${styles.firstSectionHeadText} z-20`}>
+              {heroText1}{" "}
+            </h1>
+            <WordSlider words={[slidingHeroText1, slidingHeroText2]} />
+            <h1 className={styles.firstSectionHeadText}>{heroText2}</h1>
+            <h1 className={styles.firstSectionHeadText}>{heroText3}</h1>
+          </div>
+          <Col className={`${styles.firstSectionHeadTextTablet} z-20`}>
+            <h1 className={`${styles.firstSectionHeadText} z-20 `}>
+              {heroText1}{" "}
+            </h1>
+            <h1 className={` ${styles.flexGap} flex  "`}>
+              <WordSlider words={[slidingHeroText1, slidingHeroText2]} />
+              <h1 className={styles.firstSectionHeadText}>{heroText2}</h1>
+            </h1>
+            <h1 className={styles.firstSectionHeadText}>{heroText3}</h1>
+          </Col>
+
+          <Col className={styles.heroBannerResponsive}>
+            <Image
+              src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/firstSection/images/imageRes.webp"
+              alt="firstSectionRes"
+              width={600}
+              height={350}
+              priority
+              quality={75}
+              decoding="async"
+              fetchPriority="high"
+              loading="eager"
+            />
+          </Col>
+          <Image
+            className={styles.heroBannerTablet}
+            src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/firstSection/images/image23.webp"
+            width={600}
+            height={350}
+            alt="firstSectionRes"
+            fetchPriority="low"
+            blurDataURL={blurDataURL}
+            loading="eager"
+          />
+          <div>
+            <Col className={styles.firstSectionInputWrapper}>
+
+              <InputSection1 />
+            </Col>
+          </div>
+          <Col className={styles.statsWrapper}>
+            <Stats homepageData={homepageData} />
+          </Col>
+          <div className={`${styles.statsTablet} mt-[27px]`}>
+            <StatsTablet homepageData={homepageData} />
+          </div>
+        </Col>
+
+        <div className={`${styles.heroBannerLargeWrapper} `}>
+          <Image
+            src="https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/firstSection/images/enhancedFS.png"
+            width={500}
+            height={612}
+            alt="firstSection"
+            className={styles.image11}
+            fetchPriority="low"
+            loading="eager"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```

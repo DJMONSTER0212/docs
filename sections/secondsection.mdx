@@ -1,0 +1,542 @@
+---
+title: "Section 2"
+description: " The `Section2` component in this JavaScript React code fetches data and displays different sections
+  based on the selected tab, including cards for different class levels and subjects."
+---
+```
+"use client";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import Image from "next/image";
+import styles from "../css/styles.module.css";
+const std = [" 11 to 12 +", "9 to 10", " 4 to 8 ", " 1 to 3 "];
+import { Col } from "react-bootstrap";
+import { useRouter } from "next/navigation";
+
+import { setActiveTabb } from "@/store/activeTabSlice";
+
+import {
+  setShowGradePopup,
+  setSelectedExam,
+  setGrades,
+} from "../../../store/HomePage/examGradeSelection";
+import SelectGradePopup from "@/components/common/SelectGradePopup";
+import { useDispatch, useSelector } from "react-redux";
+import { utm_Params } from "@/utils/getQueryParams";
+// import homepageData from "@/components/homePage/homepage.json";
+export const SwitchTabs = ({ data, onTabChange }) => {
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [left, setLeft] = useState(0);
+  const [tabWidth, setTabWidth] = useState(0);
+  const tabsRefs = useRef([]);
+
+  useEffect(() => {
+    // On component mount or when data changes, update the width and position
+    if (tabsRefs.current[selectedTab]) {
+      // console.log(typeof tabsRefs.current[selectedTab].offsetWidth, "nikal");
+      setTabWidth(tabsRefs.current[selectedTab].offsetWidth);
+      setLeft(tabsRefs.current[selectedTab].offsetLeft);
+    }
+  }, [selectedTab, data]);
+
+  const activeTab = (tab, index) => {
+    setSelectedTab(index);
+    onTabChange(tab, index);
+  };
+
+  return (
+    <div>
+      <div className={styles.switchTabContainer}>
+        {data.map((tab, index) => (
+          <div
+            key={index}
+            ref={(el) => (tabsRefs.current[index] = el)}
+            className={`${styles.tabButton} ${
+              selectedTab === index ? styles.selected : styles.default
+            }`}
+            onClick={() => activeTab(tab, index)}
+          >
+            {tab}
+          </div>
+        ))}
+        <span
+          className={styles.switchTabDash}
+          style={{ left, width: tabWidth }}
+        />
+      </div>
+    </div>
+  );
+};
+
+const Card3 = ({ link, svg1, svg2, altText, titleLineOne, titleLineTwo }) => {
+  const [src, setSrc] = useState(svg1);
+  const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
+  const utm_params = utm_Params();
+  function handleClick() {
+    router.push(link+utm_params);
+  }
+
+  const handleMouseEnter = () => setSrc(svg2);
+  const handleMouseOut = () => setSrc(svg1);
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseOut}
+      className={styles.card3}
+      onClick={handleClick}
+    >
+      <Image
+        src={src}
+        width={100}
+        fetchPriority="high"
+        height={100}
+        alt={altText}
+        className={styles.secondSectionLogo}
+      />
+      <div className={styles.card3Sec}>
+        <div className={`${styles.card3Text}`}>{titleLineOne}</div>
+        <div className={`${styles.card3Text}`}>{titleLineTwo}</div>
+      </div>
+    </div>
+  );
+};
+
+function Card0(props) {
+  const dispatch = useDispatch();
+  const [svg, setSvg] = useState(props.data.svg);
+  const [isHovered, setIsHovered] = useState(false);
+  const utm_params = utm_Params();
+  const handleHover = () => {
+    setIsHovered(!isHovered);
+    setSvg(svg == props.data.svg ? props.data.svg2 : props.data.svg);
+  };
+
+  const openPopup = () => {
+    // console.log(props.data);
+    if (props.data.link) {
+      // If link is present, navigate to the link
+      window.open(props.data.link+utm_params, "_blank");
+    } else {
+      // Else, perform the existing dispatch actions
+      dispatch(setShowGradePopup(true));
+      dispatch(setGrades(props?.data?.grades));
+      dispatch(setSelectedExam(props?.data?.targetExam));
+    }
+    // console.log(props?.data?.targetExam, "jvgjv");
+  };
+  return (
+    <div
+      onMouseEnter={handleHover}
+      onMouseLeave={handleHover}
+      onClick={openPopup}
+      className={styles.card0}
+    >
+      <Image
+        src={svg}
+        width={100}
+        fetchPriority="high"
+        height={100}
+        alt="secondSec.svg"
+        className={styles.secondSectionLogo}
+      />
+      <Col>
+        <h2
+          className={`" ${isHovered ? "text-white" : "text-[#080E14]"}  " ${
+            styles.card0Heading
+          }`}
+        >
+          {props.data.name}
+        </h2>
+        <div
+          className={`" ${isHovered ? "text-white" : "text-[#6B6E72]"} " ${
+            styles.card0SubHeading
+          }`}
+        >
+          {props.data.subItemAbout}
+        </div>
+      </Col>
+      <div
+        className={`" text-[#007BFF] ${
+          isHovered ? "text-white" : ""
+        } max-md:w-full " ${styles.card0ExamTime}`}
+      >
+        {props.data.examTime}
+      </div>
+    </div>
+  );
+}
+const Card2 = ({ svg1, svg2, altText, title, subtitle, stdbound, link }) => {
+  const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
+  const [src, setSrc] = useState(svg1);
+  const utm_params = utm_Params();
+  function handleMouseEnter() {
+    setIsHovered(true);
+    setSrc(svg2);
+  }
+  function handleMouseOut() {
+    setIsHovered(false);
+    setSrc(svg1);
+  }
+  function handleClick() {
+    router.push(link+utm_params);
+  }
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseOut}
+      className={styles.card2}
+      onClick={handleClick}
+    >
+      <Image
+        src={src}
+        className={styles.secondSectionLogo}
+        width={100}
+        height={100}
+        alt={altText}
+      />
+      <div className=" text-center">
+        <div
+          className={`${isHovered ? "text-white" : ""} ${styles.card2Heading}`}
+        >
+          {title}
+        </div>
+        <div
+          className={`${isHovered ? "text-white" : ""} ${
+            styles.card2SubHeading
+          }`}
+        >
+          {subtitle}
+        </div>
+        <div
+          className={` ${styles.card2Class} ${
+            isHovered ? "text-white" : " text-[#007BFF] "
+          } `}
+        >
+          {stdbound}
+        </div>
+      </div>
+    </div>
+  );
+};
+const Card1 = ({ link, svg1, svg2, altText, text }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const [src, setSrc] = useState(svg1);
+  const router = useRouter();
+  const utm_params = utm_Params();
+  function handleClick() {
+    router.push(link+utm_params);
+  }
+  function handleMouseEnter() {
+    setIsHovered(true);
+    setSrc(svg2);
+  }
+  function handleMouseOut() {
+    setIsHovered(false);
+    setSrc(svg1);
+  }
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseOut}
+      className={styles.card1}
+      onClick={handleClick}
+    >
+      <Image
+        src={src}
+        height={100} // Adjust according to your needs
+        width={100} // Adjust according to your needs
+        alt={altText}
+        className={styles.secondSectionLogo}
+      />
+      <div
+        className={`" ${isHovered ? "text-white" : "text-black"}" ${
+          styles.card1Heading
+        }`}
+      >
+        {text}
+      </div>
+    </div>
+  );
+};
+
+function Class11to12({ homepageData }) {
+  // Extract the data for "11 to 12 +" from the JSON file
+  const class11to12Data = homepageData.startLearning["class 11 to 12+"];
+
+  return (
+    <div className={`${styles.class11to12} max-lg:w-screen"`}>
+      <h2 className={styles.competitiveExamDiv}>competitive exams</h2>
+      <div
+        className={` ${styles.class11to12Items} no-scrollbar overflow-x-auto  "`}
+      >
+        {/* Map over the data to create cards */}
+        {Object.entries(class11to12Data).map(
+          ([courseName, courseDetails], index) => (
+            <Card0
+              data={{
+                ...courseDetails,
+                name: courseName, // Set the name from the key of the JSON object
+                svg: courseDetails.svg, // You might need to adjust this depending on your data structure
+                svg2: courseDetails.svg2, // Adjust accordingly
+              }}
+              key={index}
+            />
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+function Class9to10({ homepageData }) {
+  const class9to10Data = homepageData.startLearning["class 9 to 10"];
+  return (
+    <div className="flex md:px10 max-lg:w-scr flex-col pb-[32px] justify-start">
+      {/* Competitive Exams Section */}
+      <h2 className={styles.competitiveExamDiv}>
+        {class9to10Data["competitive exams"] ? "competitive exams" : ""}
+      </h2>
+      <div className="flex flex-col gap-10">
+        {class9to10Data["competitive exams"] && (
+          <div className="flex max-md:px-1 md:w-full max-md:gap-[12px] gap-[20px] max-md:w-auto max-md:overflow-x-auto max-xl:h-full no-scrollbar">
+            {Object.entries(class9to10Data["competitive exams"]).map(
+              ([courseName, courseDetails], index) => (
+                <Card0
+                  data={{
+                    ...courseDetails,
+                    name: courseName,
+                    svg: courseDetails.svg,
+                    svg2: courseDetails.svg2,
+                  }}
+                  key={index}
+                />
+              )
+            )}
+          </div>
+        )}
+
+        {/* Infinity Learn Tuitions Section */}
+        {class9to10Data["infinity learn tuitions"] && (
+          <div>
+            <h2 className={styles.competitiveExamDiv}>
+              infinity learn tuitions{" "}
+              <span className="font-normal opacity-50 text-2xl">(cbse)</span>
+            </h2>
+            <div className="no-scrollbar max-md:overflow-x-auto max-md:gap-[11px] max-md:px-0 w-full max-2xl:h-max max-md:p max-md:-6 flex gap-[16px]">
+              {Object.entries(class9to10Data["infinity learn tuitions"]).map(
+                ([subjectName, subjectDetails], index) => (
+                  <Card1
+                    svg1={subjectDetails.svg1}
+                    svg2={subjectDetails.svg2}
+                    altText={subjectName}
+                    text={subjectName}
+                    key={index}
+                    link={subjectDetails.link}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+function Class4to8({ homepageData }) {
+  const class4to8Data = homepageData.startLearning["class 4 to 8"];
+  return (
+    <div className="flex flex-col pb-[32px] justify-start">
+      <h2 className={styles.competitiveExamDiv}>competitive exams</h2>
+      <div className="flex flex-col gap-[1.24rem]">
+        {class4to8Data["competitive exams"] && (
+          <div className="flex w-full gap-5 hover:text-white hover:cursor-pointer max-md:px-4">
+            {Object.entries(class4to8Data["competitive exams"]).map(
+              ([courseName, courseDetails], index) => (
+                <Card2
+                  key={index}
+                  svg1={courseDetails.svg}
+                  svg2={courseDetails.svg2}
+                  altText={courseName}
+                  title={courseName}
+                  subtitle={courseDetails.subItemAbout}
+                  stdbound={courseDetails.examTime}
+                  link="foundation-course-for-class-8"
+                />
+              )
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-10">
+          <div>
+            <h2 className={styles.competitiveExamDiv}>
+              infinity learn tuitions{" "}
+              <span className="font-normal opacity-50 text-2xl">(cbse)</span>
+            </h2>
+            <div className="flex max-md:px-1 md:w-full max-md:gap-[12px] gap-[20px] max-md:w-auto max-md:overflow-x-auto max-xl:h-full no-scrollbar">
+              {Object.entries(class4to8Data["infinity learn tuitions"]).map(
+                ([subjectName, subjectDetails], index) => (
+                  <Card1
+                    key={index}
+                    svg1={subjectDetails.svg1}
+                    svg2={subjectDetails.svg2}
+                    altText={subjectName}
+                    text={subjectName}
+                    link={subjectDetails.link}
+                  />
+                )
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2 className={styles.competitiveExamDiv}>infinity learn futurz</h2>
+            <div className="max-md:px-3 flex max-md:overflow-x-auto gap-6">
+              {Object.entries(class4to8Data["infinity learn futurz"]).map(
+                ([programName, programDetails], index) => (
+                  <Card3
+                    key={index}
+                    svg1={programDetails.svg1}
+                    svg2={programDetails.svg2}
+                    altText={programName}
+                    link={programDetails.link}
+                    titleLineOne={programDetails.titleLineOne}
+                    titleLineTwo={programDetails.titleLineTwo}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function Class1to3({ homepageData }) {
+  const class1to3Data =
+    homepageData.startLearning["class 1 to 3"]["program for kids"];
+
+  return (
+    <div className="flex flex-col pb-[32px] justify-start">
+      <h2 className={styles.competitiveExamDiv}>program for kids</h2>
+      <div className="flex flex-col gap-8">
+        <div className="flex w-full gap-5 max-md:px-4">
+          {Object.entries(class1to3Data).map(
+            ([programName, programDetails], index) => (
+              <Card2
+                key={index}
+                svg1={programDetails.svg1}
+                svg2={programDetails.svg2}
+                altText={programName}
+                title={programName}
+                link={programDetails.link}
+                subtitle={programDetails.subtitle}
+              />
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Section2({ homepageDat }) {
+  const [homepageData, setHomepageData] = useState(homepageDat);
+  useEffect(() => {
+    // Only fetch data if homepageData is null
+    const getData = async () => {
+      try {
+        const res = await fetch(
+          "https://s3.ap-south-1.amazonaws.com/ilwebsite2.devinfinitylearn.in/Homepage/homePage.json"
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await res.json();
+        setHomepageData(data);
+        console.info("Fetched homepageDATA", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+    dispatch(setActiveTabb(0));
+  }, []); // Dependency array includes homepageData
+
+  const {
+    statsText1,
+    statsText1Count,
+    statsText2,
+    statsText2Count,
+    statsText3,
+    statsText3Count,
+  } = homepageData["WIL - Navigation Menu and Hero Section"].stats;
+  const { heading1, heading2, heading3 } = homepageData.startLearning;
+  const dispatch = useDispatch();
+  // const [activeTab, setActiveTab] = useState(1);
+  const activeTab = useSelector((state) => state.activeTab.index);
+  const handleTabChange = (tab, index) => {
+    dispatch(setActiveTabb(index));
+    // setActiveTab(index);
+  };
+  console.info("activeTab", activeTab);
+  const showGradePopup = useSelector(
+    (state) => state.examGradeSelection.showGradePopup
+  );
+  return (
+    <div
+      fetchPriority="low"
+      className={`${styles.secondSectionWrapper}    poppins`}
+    >
+      <div className={styles.secondSectionContent}>
+        <div className={styles.stats1Wrapper}>
+          <div className={styles.stat1Div}>
+            <div className={styles.stat1Text1}>{statsText1}</div>
+            <div className={styles.stat1Text2}>{statsText1Count}</div>
+          </div>
+          <div className={styles.stat1Border} />
+          <div className={styles.stat1Div}>
+            <div className={styles.stat1Text1}>{statsText2}</div>
+            <div className={styles.stat1Text2}>{statsText2Count}</div>
+          </div>
+          <div className={styles.stat1Border} />
+          <div className={styles.stat1Div}>
+            <div className={`${styles.stat1Text1}  flex-grow`}>
+              {statsText3}
+            </div>
+            <div className={styles.stat1Text2}>{statsText3Count}</div>
+          </div>
+        </div>
+        <div className=" max-w-[1001px] w-[100%]  mx-auto">
+          <h2 className={styles.secondSectionHeadingWrapper}>
+            {heading1}
+            <span className=" text-[#007BFF] "> {heading2} </span>
+            {heading3}
+          </h2>
+          <h2 className={styles.secondSectionMobHeadingWrapper}>
+            <div className=" text-[#080E14]">{heading1}</div>
+            <div className="">
+              <span className=" text-[#007BFF]"> {heading2} </span>
+              {heading3}
+            </div>
+          </h2>
+          <div className={styles.switchTabWrapper}>
+            <SwitchTabs data={std} onTabChange={handleTabChange} />
+          </div>
+          <div className={styles.secondSectionCardContainer}>
+            {activeTab === 0 && <Class11to12 homepageData={homepageData} />}
+            {activeTab === 1 && <Class9to10 homepageData={homepageData} />}
+            {activeTab === 2 && <Class4to8 homepageData={homepageData} />}
+            {activeTab === 3 && <Class1to3 homepageData={homepageData} />}
+          </div>
+        </div>
+      </div>
+      {showGradePopup && <SelectGradePopup />}
+    </div>
+  );
+}
+
+```
