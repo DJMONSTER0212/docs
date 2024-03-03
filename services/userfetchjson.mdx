@@ -1,0 +1,47 @@
+---
+title: 'User Fetch Json'
+description: ' The `useFetchJsonData` custom hook fetches JSON data from a specified URL and provides the data,
+  loading state, and error state for the fetched data.
+  @param url - The `url` parameter in the `useFetchJsonData` custom hook is the URL from which you
+  want to fetch JSON data. This URL will be used in the `fetch` function to make a network request and
+  retrieve the JSON data from the specified endpoint.
+  @returns The `useFetchJsonData` custom hook returns an object with three properties: `data`,
+  `loading`, and `error`. These properties are used to manage the fetched JSON data, loading state,
+  and any potential errors that may occur during the fetch operation.
+ '
+icon: 'user'
+---
+
+```
+import { useState, useEffect } from "react";
+
+const useFetchJsonData = (url) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const json = await response.json();
+        setData(json);
+      } catch (e) {
+        setError(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [url]);
+
+  return { data, loading, error };
+};
+
+export default useFetchJsonData;
+
+```

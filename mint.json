@@ -81,6 +81,16 @@
       ]
     },
     {
+      "group": "Services",
+      "pages":[
+        "services/userservices",
+        "services/userfetchjson",
+        "services/classsesservice",
+        "services/subscriptionservice",
+        "services/firebaseservices"
+      ]
+    },
+    {
       "group": "API Documentation",
       "pages": [
         "api-reference/introduction"

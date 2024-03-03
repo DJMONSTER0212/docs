@@ -1,0 +1,365 @@
+---
+title: 'User Services'
+description: ' The above code consists of various async functions that interact with different APIs to perform
+  actions like fetching data, verifying phone numbers, sending OTPs, updating user profiles, handling
+  user authentication, and sending messages to SQS.
+  @returns The code snippet provided contains various functions that interact with different APIs
+ using Axios for making HTTP request.'
+icon: 'user'
+---
+
+```
+"use client";
+import axios from "axios";
+import * as AWS from "aws-sdk";
+import { getSqsValue } from "./firebaseService";
+const apiUrl = process.env.uamAPI;
+const domain = process.env.domain;
+const gateWayAPI = process.env.gateWayAPI;
+const gateWayOtpUrl = process.env.gateWayOtpUrl;
+const apiInstance = axios.create({
+  baseURL: apiUrl,
+  headers: {
+    "X-Tenant": "infinitylearn",
+  },
+});
+
+export async function getGrades() {
+  try {
+    const response = await apiInstance.get("api/grades");
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function getExams() {
+  try {
+    const response = await apiInstance.get("api/exams");
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+
+
+export async function verifyPhone(request) {
+  const verifyMobileNumberInstance = axios.create({
+    baseURL: gateWayAPI,
+    headers: {
+      "X-Tenant": "infinitylearn",
+      platform: "web",
+      "product-id": "300",
+      "tenant-id": "1",
+      // 'Authorization': `Bearer ${token}`,
+      // 'accesstoken': `Bearer ${token}`
+    },
+  });
+  try {
+    const response = await verifyMobileNumberInstance.post(
+      "/api/v1/user/learn/verify-phone",
+      request
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function sendOtp(request) {
+  const generateOTPInstance = axios.create({
+    baseURL: gateWayOtpUrl,
+    headers: {
+      "X-Tenant": "infinitylearn",
+      accept: "application/json",
+      "Content-Type": "application/json",
+      // 'Authorization': `Bearer ${token}`,
+      // 'accesstoken': `Bearer ${token}`
+    },
+  });
+  try {
+    const response = await generateOTPInstance.post("api/generateOTP", request);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function validateOTP(request) {
+  const validateOTPInstance = axios.create({
+    baseURL: gateWayOtpUrl,
+    headers: {
+      // "X-Tenant": "infinitylearn",
+      accept: "application/json",
+      "Content-Type": "application/json",
+      // 'Authorization': `Bearer ${token}`,
+      // 'accesstoken': `Bearer ${token}`
+    },
+  });
+  try {
+    const response = await validateOTPInstance.post("api/validateOTP", request);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function updateUserProfile(token, body) {
+
+  const userApiInstance =axios.create({
+    baseURL: gateWayAPI,
+    headers: {
+      "X-Page": "WEB_IL_SITE",
+      "X-Product": "1",
+      'accept': 'application/json',
+      'product-id': '300',
+      'tenant-id': '1',
+      'platform': 'web',
+      'Authorization': `Bearer ${token}`
+    },
+  });
+  try {
+    const response = await userApiInstance.put(`api/v1/user/learn/update_profile`, body);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+export async function getUAMUserProfile(token,userId) {
+  const userApiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      "X-Tenant": "infinitylearn",
+      Authorization: `Bearer ${token}`,
+      accesstoken: `Bearer ${token}`,
+    },
+  });
+  try {
+    const response = await userApiInstance.get(`api/users/${userId}`);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function getAddressList(token,userId) {
+  const userApiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      "X-Tenant": "infinitylearn",
+      Authorization: `Bearer ${token}`,
+      accesstoken: `Bearer ${token}`,
+    },
+  });
+  try {
+    const response = await userApiInstance.get(`api/v1.1/users/${userId}/address`);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function saveUserAddress(token,userId,body) {
+  const userApiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      "X-Tenant": "infinitylearn",
+      Authorization: `Bearer ${token}`,
+      accesstoken: `Bearer ${token}`,
+    },
+  });
+  try {
+    const response = await userApiInstance.post(`api/v1.1/users/${userId}/address`,body);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+export async function registerNewUser(request) {
+  const newUserApiInstance = axios.create({
+    baseURL: gateWayAPI,
+    headers: {
+      "product-id": "300",
+      "tenant-id": "1",
+    },
+  });
+  try {
+    const response = await newUserApiInstance.post(
+      `api/v1/user/learn/register`,
+      request
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+export async function loginWithOTP(request) {
+  const loginApiInstance = axios.create({
+    baseURL: gateWayAPI,
+    headers: {
+
+      "product-id": "300",
+      "tenant-id": "1",
+      "platform":"web"
+    },
+  });
+  try {
+    const response = await loginApiInstance.post(
+      `api/v1/user/learn/login-with-otp`,
+      request
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+export async function getUserDto(token) {
+  const loginApiInstance = axios.create({
+    baseURL: gateWayAPI,
+    headers: {
+      'accept': 'application/json',
+      'product-id': '300',
+      'tenant-id': '1',
+      'platform': 'web',
+      'Authorization': `Bearer ${token}`
+    },
+  });
+  try {
+    const response = await loginApiInstance.get(
+      `api/v1/user/learn/dto`
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+export async function loginWithPassword(request) {
+  const loginApiInstance = axios.create({
+    baseURL: gateWayAPI,
+    headers: {
+
+      "product-id": "300",
+      "tenant-id": "1",
+      "platform":"web"
+    },
+  });
+  try {
+    const response = await loginApiInstance.post(
+      `api/v1/user/learn/login`,
+      request
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+export async function sendSQSMsg(payload) {
+  payload.environment = process.env.environment;
+  if(payload?.type == 'Lead'){
+    try{
+      let ipAddress = await axios.get('https://api.ipify.org/?format=json');
+      let regionalDetails = await axios.get(`https://ipapi.co/${ipAddress?.data?.ip}/json`);
+      console.log('regionalDetails',regionalDetails);
+      payload.Fields.mx_City = regionalDetails?.data?.city || undefined;
+      payload.Fields.mx_State = regionalDetails?.data?.region || undefined;
+      payload.Fields.mx_Country = regionalDetails?.data?.country_name || undefined;
+      payload.Fields.SourceReferrerURL = document.referrer || undefined;
+    } catch(error){
+      console.log('city and state fetch error:', error);
+    }
+  }
+  getSqsValue().then(
+    (firebaseConfig) => {
+      console.log(firebaseConfig, "firebaseConfig");
+      AWS.config.update({
+        accessKeyId: firebaseConfig?.access_key,
+        secretAccessKey: firebaseConfig?.secret_key,
+        region: "ap-south-1", // Replace with your desired region
+      });
+      const sqs = new AWS.SQS();
+      const params = {
+        MessageBody: JSON.stringify(payload), // The message content
+        // MessageGroupId: '1',
+        // MessageDeduplicationId: '1',
+        QueueUrl: process.env.environment == 'production' ? firebaseConfig?.queue_url : firebaseConfig?.testing_queue_url, // Replace with your SQS queue URL
+      };
+
+      sqs.sendMessage(params, (err, data) => {
+        if (err) {
+          console.log("Error", err);
+        } else {
+          console.log("Message sent successfully", data.MessageId);
+        }
+      });
+    },
+    (error) => {
+      console.log(error);
+    }
+  );
+}
+
+export function setCookie(name, value, expireDays, path) {
+  const d = new Date();
+  d.setTime(d.getTime() + expireDays * 24 * 60 * 60 * 1000);
+  const expires = `expires=${d.toUTCString()}`;
+  const cpath = path ? `; path=${path}` : "";
+  document.cookie = `${name}=${value};Domain=${domain}; ${expires};Path=/;  SameSite=Lax; Secure`;
+}
+
+
+```

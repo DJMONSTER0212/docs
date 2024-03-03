@@ -1,0 +1,85 @@
+---
+title: 'Subscription Service'
+description: ' The above functions use Axios to make API requests to fetch subscriptions and courses data with
+ * specific configurations and error handling.
+ * @returns The code snippet provided contains two asynchronous functions: `getSubscriptions` and
+ * `getCourses`. Both functions make API requests using Axios to fetch data from different endpoints.
+ '
+icon: 'subscription'
+---
+
+```
+import axios from "axios";
+const apiUrl = process.env.omsAPI;
+
+export async function getSubscriptions(params) {
+  const apiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      accept: "*/*",
+      "x-tenant": "infinitylearn",
+      Authorization: "Bearer ",
+    },
+    params: params,
+  });
+  try {
+    const response = await apiInstance.get("open/features/v2/get_packages");
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+const apiUrl1 = "https://livestagingapi.devinfinitylearn.in/api/v1"; // Base URL
+
+export async function getCourses(courseIds) {
+  // Create an axios instance with predefined configurations
+  const apiInstance = axios.create({
+    baseURL: apiUrl1,
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "accept-language": "en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7",
+      authorization:
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiIiLCJUZW5hbnRJZCI6MSwiUm9sZU5hbWUiOiJTdHVkZW50IiwiREJJZCI6IjQ4MTAyMzgiLCJGaXJzdE5hbWUiOiJ0IiwiVGVuYW50Q29kZSI6ImluZmluaXR5bGVhcm4iLCJMYXN0TmFtZSI6InYiLCJleHAiOjE2OTk3MTAzMjIsIlJvbGVJZCI6IjEiLCJpYXQiOjE2OTk2MjM5MjJ9.dMvI4Mnt_GjCYX97x2bmyq8q93FhXoAf9njkVqN35Bo",
+      origin: "https://studentcartflowstage.devinfinitylearn.in",
+      "ot-tenant": "infinitylearn",
+      referer: "https://studentcartflowstage.devinfinitylearn.in/",
+      "sec-ch-ua":
+        '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": '"Windows"',
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      "x-deviceid": "157.48.176.156",
+      "x-platform": "web",
+      "x-tenant": "infinitylearn",
+    },
+  });
+
+  try {
+    // Constructing the URL with course IDs
+    const courseUrl = `/courses/${courseIds.join(",")}/courses`;
+
+    // Making the GET request
+    const response = await apiInstance.get(courseUrl);
+
+    // Check if the response is successful
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+```

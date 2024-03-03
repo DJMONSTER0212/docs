@@ -1,0 +1,107 @@
+---
+title: 'Firebase Service'
+description: 'The below functions use Axios to fetch data from an API based on specified parameters like class,
+ exam, and batch ID.
+ @returns The code provided contains three async functions: `getMasterclasses`,
+ `getPastMasterclasses`, and `fetchBatchDetails`
+ '
+icon: 'classes'
+---
+
+
+```
+import axios from "axios";
+const apiUrl = process.env.liveclassesAPI;
+
+export async function getMasterclasses(classFor, examFor) {
+  let otExamsHeader;
+  if (examFor === 'jee') {
+    otExamsHeader = '["JEE Main"]';
+  } else if (examFor === 'neet') {
+    otExamsHeader = '["NEET"]';
+  } else if (examFor === 'cbse') {
+    otExamsHeader = '["CBSE"]';
+  }
+
+  const apiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      accept: "*/*",
+      "x-tenant": "infinitylearn",
+      Authorization: "Bearer ",
+      "Ot-Exams": otExamsHeader,
+      "Ot-Grade": `${classFor}`
+    },
+  });
+
+  try {
+    const response = await apiInstance.get(`${apiUrl}api/v1/eclasses?type=masterclasses&page=1&limit=6`);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function getPastMasterclasses(classFor,examFor) {
+  let otExamsHeader;
+  if (examFor === 'jee') {
+    otExamsHeader = '["JEE Main"]';
+  } else if (examFor === 'neet') {
+    otExamsHeader = '["NEET"]';
+  } else if (examFor === 'cbse') {
+    otExamsHeader = '["CBSE"]';
+  }
+  const apiInstance = axios.create({
+    baseURL: apiUrl,
+    headers: {
+      accept: "*/*",
+      "x-tenant": "infinitylearn",
+      Authorization: "Bearer ",
+      "Ot-Exams":otExamsHeader,
+      "Ot-Grade":`${classFor}`
+    },
+    // params: {
+    //   type: "masterclasses",
+    //   page: 3,
+    //   limit: 15,
+    //   filter: "past",
+    //   days: "all",
+    // },
+  });
+  try {
+    const response = await apiInstance.get(
+      `${apiUrl}api/v1/eclasses/student/all?filter=past&type=masterclasses&page=1&limit=6&days=all&recordedMasterclass=1`
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+export async function fetchBatchDetails(Id) {
+  const apiInstance = axios.create({
+    baseURL: apiUrl,
+  });
+  try {
+    const response = await apiInstance.get(
+      `${apiUrl}api/v1/courses/batches/${Id}`
+    );
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data from the API");
+    }
+  } catch (error) {
+    throw new Error("Error fetching data:", error);
+  }
+}
+
+```
