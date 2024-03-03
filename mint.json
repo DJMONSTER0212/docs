@@ -72,7 +72,7 @@
     {
       "group": "Redux-store",
       "pages": [
-        "store/store",
+        "store/reduxstore",
         "store/newuserslice",
         "store/modaltoshow",
         "store/mobverslice",
